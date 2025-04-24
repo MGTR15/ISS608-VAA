@@ -211,7 +211,7 @@ ggplot(data=exam_data,
 
 ```
 
-## 1.7.3 Geometric Objects: geom_histogram()
+## 1.7.3 Geometric Objects: `geom_histogram()`
 
 In the code chunk below, [geom_histogram()](https://ggplot2.tidyverse.org/reference/geom_histogram.html) is used to create a simple histogram by using values in *MATHS* field of *exam_data*.
 
@@ -225,7 +225,7 @@ ggplot(data=exam_data,
 Note that the default bin is **30.**
 :::
 
-## 1.7.4 Modifying a geometric object by changing 1.7.4 Modifying a geometric object by changing \[geom()\]
+## 1.7.4 Modifying a geometric object by changing 1.7.4 Modifying a geometric object by changing `geom()`
 
 In the code chunk below,
 
@@ -241,7 +241,7 @@ ggplot(data=exam_data,
                  fill="light blue")  
 ```
 
-## 1.7.5 Modifying a geometric object by changing aes()
+## 1.7.5 Modifying a geometric object by changing *aes()*
 
 -   The code chunk below changes the interior colour of the histogram (i.e. *fill*) by using sub-group of *aesthetic().*
 
@@ -322,6 +322,7 @@ ggplot(data=exam_data,
 [geom_point()](https://ggplot2.tidyverse.org/reference/geom_point.html) is especially useful for creating scatterplot.
 
 The code chunk below plots a scatterplot showing the Maths and English grades of pupils by using `geom_point()`.
+
 ```{r}
 ggplot(data=exam_data, 
        aes(x= MATHS, 
@@ -330,6 +331,7 @@ ggplot(data=exam_data,
 ```
 
 ## 1.7.10 geom objects can be combined
+
 The code chunk below plots the data points on the boxplots by using both `geom_boxplot()` and `geom_point()`.
 
 ```{r}
@@ -339,4 +341,113 @@ ggplot(data=exam_data,
   geom_boxplot() +                    
   geom_point(position="jitter", 
              size = 0.5)        
+```
+
+## 1.8 Essential Grammatical Elements in ggplot2: stat
+
+The [Statistics functions](https://ggplot2.tidyverse.org/reference/index.html#stats) statistically transform data, usually as some form of summary. For example:
+
+-   frequency of values of a variable (bar graph)
+    -   a mean
+    -   a confidence limit
+-   There are two ways to use these functions:
+    -   add a `stat_()` function and override the default geom, or
+    -   add a `geom_()` function and override the default stat.
+
+## 1.8.1 Working with stat()
+
+The boxplots below are incomplete because the positions of the means were not shown.
+
+```{r}
+ggplot(data=exam_data, 
+       aes(y = MATHS, x= GENDER)) +
+  geom_boxplot()
+```
+
+## 1.8.2 Working with stat - the *stat_summary()* method
+
+The code chunk below adds mean values by using [stat_summary()](https://ggplot2.tidyverse.org/reference/stat_summary.html) function and overriding the default geom.
+
+```{r}
+ggplot(data=exam_data, 
+       aes(y = MATHS, x= GENDER)) +
+  geom_boxplot() +
+  stat_summary(geom = "point",       
+               fun = "mean",         
+               colour ="red",        
+               size=4)               
+```
+
+## 1.8.3 Working with stat - the `geom()` method
+
+The code chunk below adding mean values by using `geom_()` function and overriding the default stat.
+
+```{r}
+ggplot(data=exam_data, 
+       aes(y = MATHS, x= GENDER)) +
+  geom_boxplot() +
+  geom_point(stat="summary",        
+             fun="mean",           
+             colour="red",          
+             size=4)
+```
+
+## 1.8.4 Adding a best fit curve on a scatterplot?
+
+The scatterplot below shows the relationship of Maths and English grades of pupils. The interpretability of this graph can be improved by adding a best fit curve.
+
+![](images/unnamed-chunk-24-1.png)
+
+In the code chunk below, [geom_smooth()](https://ggplot2.tidyverse.org/reference/geom_smooth.html) is used to plot a best fit curve on the scatterplot.
+
+```{r}
+ggplot(data=exam_data, 
+       aes(x= MATHS, y=ENGLISH)) +
+  geom_point() +
+  geom_smooth(size=0.5)
+```
+
+::: callout-note
+-   The default method used is loess.
+:::
+
+The default smoothing method can be overridden as shown below.
+
+```{r}
+ggplot(data=exam_data, 
+       aes(x= MATHS, 
+           y=ENGLISH)) +
+  geom_point() +
+  geom_smooth(method=lm, 
+              linewidth=0.5)
+```
+
+## 1.9 Essential Grammatical Elements in ggplot2: Facets
+
+Facetting generates small multiples (sometimes also called trellis plot), each displaying a different subset of the data. They are an alternative to aesthetics for displaying additional discrete variables. ggplot2 supports two types of factes, namely: [facet_grid()](https://ggplot2.tidyverse.org/reference/facet_grid.html) and [facet_wrap](https://ggplot2.tidyverse.org/reference/facet_wrap.html).
+
+## 1.9.1 Working with `facet_wrap()`
+
+[facet_wrap](https://ggplot2.tidyverse.org/reference/facet_wrap.html) wraps a 1d sequence of panels into 2d. This is generally a better use of screen space than facet_grid because most displays are roughly rectangular.
+
+The code chunk below plots a trellis plot using `facet-wrap()`.
+
+```{r}
+ggplot(data=exam_data, 
+       aes(x= MATHS)) +
+  geom_histogram(bins=20) +
+    facet_wrap(~ CLASS)
+```
+
+## 1.9.2 facet_grid() function
+
+[facet_grid()](https://ggplot2.tidyverse.org/reference/facet_grid.html) forms a matrix of panels defined by row and column facetting variables. It is most useful when you have two discrete variables, and all combinations of the variables exist in the data.
+
+The code chunk below plots a trellis plot using `facet_grid()`.
+
+```{r}
+ggplot(data=exam_data, 
+       aes(x= MATHS)) +
+  geom_histogram(bins=20) +
+    facet_grid(~ CLASS)
 ```
