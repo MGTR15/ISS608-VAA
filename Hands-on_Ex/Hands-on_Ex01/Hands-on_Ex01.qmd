@@ -185,7 +185,7 @@ In a dot plot, the width of a dot corresponds to the bin width (or maximum width
 
 In the code chunk below, [geom_dotplot()](https://ggplot2.tidyverse.org/reference/geom_dotplot.html) of ggplot2 is used to plot a dot plot.
 
-```{r}
+```{r, message=FALSE}
 ggplot(data=exam_data, 
        aes(x = MATHS)) +
   geom_dotplot(dotsize = 0.5)
@@ -219,7 +219,7 @@ ggplot(data=exam_data,
 
 In the code chunk below, [*geom_histogram()*](https://ggplot2.tidyverse.org/reference/geom_histogram.html) is used to create a simple histogram by using values in *MATHS* field of *exam_data*.
 
-```{r, attr.source='.numberLines'}
+```{r, attr.source='.numberLines', message=FALSE}
 ggplot(data=exam_data, 
        aes(x = MATHS)) +
   geom_histogram()       
@@ -404,7 +404,7 @@ The scatterplot below shows the relationship of Maths and English grades of pupi
 
 In the code chunk below, [geom_smooth()](https://ggplot2.tidyverse.org/reference/geom_smooth.html) is used to plot a best fit curve on the scatterplot.
 
-```{r, attr.source='.numberLines'}
+```{r, attr.source='.numberLines', warning=FALSE, message=FALSE}
 ggplot(data=exam_data, 
        aes(x= MATHS, y=ENGLISH)) +
   geom_point() +
@@ -417,7 +417,7 @@ ggplot(data=exam_data,
 
 The default smoothing method can be overridden as shown below.
 
-```{r, attr.source='.numberLines'}
+```{r, attr.source='.numberLines', message=FALSE}
 ggplot(data=exam_data, 
        aes(x= MATHS, 
            y=ENGLISH)) +
