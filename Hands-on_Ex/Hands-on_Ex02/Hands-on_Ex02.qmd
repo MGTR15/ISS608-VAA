@@ -274,8 +274,16 @@ Figure in the tabset below shows a composite of two histograms created using pat
 # plot
 
 ```{r}
+#| echo: false
 p1 + p2
 ```
+
+# The code
+```{r}
+#| eval: false
+p1 + p2
+```
+
 :::
 
 ## 2.5.3 Combining three ggplot2 graphs
@@ -292,6 +300,13 @@ We can plot more complex composite by using appropriate operators. For example, 
 # plot
 
 ```{r, message=FALSE}
+#| echo: false
+(p1 / p2) | p3
+```
+
+# the code
+```{r, message=FALSE}
+#| eval: false
 (p1 / p2) | p3
 ```
 :::
@@ -306,6 +321,14 @@ In order to identify subplots in text, patchwork also provides auto-tagging capa
 # plot
 
 ```{r, message=FALSE}
+#| echo: false
+((p1 / p2) | p3) + 
+  plot_annotation(tag_levels = 'I')
+```
+
+# the code
+```{r, message=FALSE}
+#| eval: false
 ((p1 / p2) | p3) + 
   plot_annotation(tag_levels = 'I')
 ```
@@ -319,6 +342,18 @@ Beside providing functions to place plots next to each other based on the provid
 # plot
 
 ```{r, message=FALSE}
+#| echo: false
+p3 + inset_element(p2, 
+                   left = 0.02, 
+                   bottom = 0.7, 
+                   right = 0.5, 
+                   top = 1)
+```
+
+# the code
+
+```{r, message=FALSE}
+#| eval: false
 p3 + inset_element(p2, 
                    left = 0.02, 
                    bottom = 0.7, 
