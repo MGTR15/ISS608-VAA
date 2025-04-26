@@ -301,6 +301,8 @@ We can plot more complex composite by using appropriate operators. For example, 
 
 ```{r, message=FALSE}
 #| echo: false
+#| fig-width: 12
+#| fig-height: 7
 (p1 / p2) | p3
 ```
 
