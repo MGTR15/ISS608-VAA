@@ -1,6 +1,13 @@
 ---
 title: "Hands-on Exercise 1"
 author: "Marga Thura"
+date: "April 18 2025"
+date-modified: "April 26 2025"
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  freeze: true
 ---
 
 # 1 A Layered Grammar of Graphics: ggplot2 methods

@@ -1,6 +1,13 @@
 ---
 title: "Hands-on Exercise 2"
 author: "Marga Thura"
+date: "April 25 2025"
+date-modified: "April 26 2025"
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  freeze: true
 ---
 
 # 2 Beyond ggplot2 Fundamentals
