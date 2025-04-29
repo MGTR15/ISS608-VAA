@@ -438,7 +438,7 @@
     "href": "Hands-on_Ex/Hands-on_Ex03/Hands-on_Ex03.html#line-animated-plot",
     "title": "Hands-on Exercise 03",
     "section": "4.4.1 Line Animated Plot",
-    "text": "4.4.1 Line Animated Plot\n\nPlotThe code\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nggplot(globalPop, aes(x = Year, y = Young, group = Country, color = Country)) +\n  geom_line() +\n  geom_point() +\n  labs(x = \"Year\", y = \"% Young Population\") +\n  theme_minimal() +\n  transition_reveal(Year)"
+    "text": "4.4.1 Line Animated Plot\n\nPlotThe code\n\n\n\n\n\n\n\n\n\n\n\n\n\n\np &lt;- ggplot(globalPop, aes(x = Year, y = Young, group = Country, color = Country)) +\n  geom_line() +\n  labs(x = \"Year\", y = \"% Young Population\") +\n  theme_minimal() +\n  theme(legend.position = \"none\")\n\n# Animated reveal\np + transition_reveal(Year)"
   },
   {
     "objectID": "Hands-on_Ex/Hands-on_Ex03/Hands-on_Ex03.html#data-transition-plot",

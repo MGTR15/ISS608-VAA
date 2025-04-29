@@ -806,24 +806,29 @@ ggplot(globalPop, aes(x = Old, y = Young,
 
 ```{r}
 #| echo: false
-ggplot(globalPop, aes(x = Year, y = Young, group = Country, color = Country)) +
+p <- ggplot(globalPop, aes(x = Year, y = Young, group = Country, color = Country)) +
   geom_line() +
-  geom_point() +
   labs(x = "Year", y = "% Young Population") +
   theme_minimal() +
-  transition_reveal(Year)
+  theme(legend.position = "none")
+
+# Animated reveal
+p + transition_reveal(Year)
+
 ```
 
 ## The code
 
 ```{r}
 #| eval: false
-ggplot(globalPop, aes(x = Year, y = Young, group = Country, color = Country)) +
+p <- ggplot(globalPop, aes(x = Year, y = Young, group = Country, color = Country)) +
   geom_line() +
-  geom_point() +
   labs(x = "Year", y = "% Young Population") +
   theme_minimal() +
-  transition_reveal(Year)
+  theme(legend.position = "none")
+
+# Animated reveal
+p + transition_reveal(Year)
 ```
 :::
 
