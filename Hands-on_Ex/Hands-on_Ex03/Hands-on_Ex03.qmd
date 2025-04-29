@@ -644,7 +644,7 @@ This [link](https://davidgohel.github.io/ggiraph/index.html) provides online ver
 
 # 4 Programming Animated Statistical Graphics with R
 
-## 4.1 Overview
+# 4.1 Overview
 
 When telling a visually-driven data story, animated graphics tends to attract the interest of the audience and make deeper impression than static graphics. In this hands-on exercise, we will learn how to create animated data visualisation by using **gganimate** and **plotly r** packages. At the same time, we will also learn how to (i) reshape data by using **tidyr** package, and (ii) process, wrangle and transform data by using **dplyr** package.
 
@@ -743,7 +743,9 @@ ggplot(globalPop, aes(x = Old, y = Young,
        x = '% Aged', 
        y = '% Young') 
 ```
+
 ## The code
+
 ```{r}
 #| eval: false
 ggplot(globalPop, aes(x = Old, y = Young, 
@@ -757,7 +759,9 @@ ggplot(globalPop, aes(x = Old, y = Young,
        x = '% Aged', 
        y = '% Young') 
 ```
+
 ## Animated plot
+
 ```{r}
 #| echo: false
 ggplot(globalPop, aes(x = Old, y = Young, 
@@ -773,7 +777,9 @@ ggplot(globalPop, aes(x = Old, y = Young,
   transition_time(Year) +       
   ease_aes('linear')      
 ```
+
 ## The code
+
 ```{r}
 #| eval: false
 ggplot(globalPop, aes(x = Old, y = Young, 
@@ -790,3 +796,314 @@ ggplot(globalPop, aes(x = Old, y = Young,
   ease_aes('linear')  
 ```
 :::
+
+# 4.4 Other animated plot methods
+
+## 4.4.1 Line Animated Plot
+
+::: panel-tabset
+## Plot
+
+```{r}
+#| echo: false
+ggplot(globalPop, aes(x = Year, y = Young, group = Country, color = Country)) +
+  geom_line() +
+  geom_point() +
+  labs(x = "Year", y = "% Young Population") +
+  theme_minimal() +
+  transition_reveal(Year)
+```
+
+## The code
+
+```{r}
+#| eval: false
+ggplot(globalPop, aes(x = Year, y = Young, group = Country, color = Country)) +
+  geom_line() +
+  geom_point() +
+  labs(x = "Year", y = "% Young Population") +
+  theme_minimal() +
+  transition_reveal(Year)
+```
+:::
+
+## 4.4.2  Data Transition Plot
+
+```{r}
+library(dplyr)
+
+mean_young <- globalPop %>%
+  group_by(Year) %>%
+  summarise(MeanYoung = mean(Young, na.rm = TRUE))
+```
+
+::: panel-tabset
+## Plot
+
+```{r}
+#| echo: false
+p <- ggplot(mean_young, aes(x = Year, y = MeanYoung, fill = MeanYoung)) +
+  geom_col() +
+  scale_fill_distiller(palette = "Blues", direction = 1) +
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    panel.grid.major.y = element_line(color = "white"),
+    panel.ontop = TRUE
+  )
+
+p + 
+  transition_states(Year, wrap = FALSE) +
+  shadow_mark() +
+  enter_grow() +
+  enter_fade()
+```
+
+## The code
+
+```{r}
+#| eval: false
+p <- ggplot(mean_young, aes(x = Year, y = MeanYoung, fill = MeanYoung)) +
+  geom_col() +
+  scale_fill_distiller(palette = "Blues", direction = 1) +
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    panel.grid.major.y = element_line(color = "white"),
+    panel.ontop = TRUE
+  )
+
+p + 
+  transition_states(Year, wrap = FALSE) +
+  shadow_mark() +
+  enter_grow() +
+  enter_fade()
+
+```
+:::
+# 4.4.3 Simple box plot
+
+::: panel-tabset
+## Plot
+```{r}
+#| echo: false
+ggplot(globalPop, aes(x = Continent, y = Young)) + 
+  geom_boxplot() + 
+  transition_states(
+    Year,
+    transition_length = 2,
+    state_length = 1
+  ) +
+  labs(title = "Year: {closest_state}",
+       x = "Continent", 
+       y = "% Young Population") +
+  enter_fade() +
+  exit_shrink() +
+  ease_aes('sine-in-out') 
+```
+## The code
+```{r}
+#| eval: false
+ggplot(globalPop, aes(x = Continent, y = Young)) + 
+  geom_boxplot() + 
+  transition_states(
+    Year,
+    transition_length = 2,
+    state_length = 1
+  ) +
+  labs(title = "Year: {closest_state}",
+       x = "Continent", 
+       y = "% Young Population") +
+  enter_fade() +
+  exit_shrink() +
+  ease_aes('sine-in-out') 
+```
+:::
+
+## 4.4.4 Plot using the gapminder
+
+::: panel-tabset
+## Plot
+
+```{r}
+#| echo: false
+ggplot(globalPop, aes(x = Old, y = Young, 
+                      size = Population, 
+                      colour = Country)) +
+  geom_point(alpha = 0.7, show.legend = FALSE) +
+  # Remove this line or define country_colors as a named vector
+  # scale_colour_manual(values = country_colors) +
+  scale_size(range = c(2, 12)) +
+  facet_wrap(~Continent) +
+  labs(title = 'Year: {frame_time}', 
+       x = '% Aged', 
+       y = '% Young') +
+  transition_time(Year) +
+  ease_aes('linear')
+```
+
+## The code
+
+```{r}
+#| eval: false
+ggplot(globalPop, aes(x = Old, y = Young, 
+                      size = Population, 
+                      colour = Country)) +
+  geom_point(alpha = 0.7, show.legend = FALSE) +
+  # Remove this line or define country_colors as a named vector
+  # scale_colour_manual(values = country_colors) +
+  scale_size(range = c(2, 12)) +
+  facet_wrap(~Continent) +
+  labs(title = 'Year: {frame_time}', 
+       x = '% Aged', 
+       y = '% Young') +
+  transition_time(Year) +
+  ease_aes('linear')
+```
+:::
+
+# 4.5 Animated Data Visualisation: plotly
+
+In **Plotly R** package, both `ggplotly()` and `plot_ly()` support key frame animations through the `frame` argument/aesthetic. They also support an `ids` argument/aesthetic to ensure smooth transitions between objects with the same id (which helps facilitate object constancy).
+
+## 4.5.1 an animated bubble plot: ggplotly() method
+
+::: panel-tabset
+## Plot
+
+```{r}
+#| echo: false
+gg <- ggplot(globalPop, 
+       aes(x = Old, 
+           y = Young, 
+           size = Population, 
+           colour = Country)) +
+  geom_point(aes(size = Population,
+                 frame = Year),
+             alpha = 0.7, 
+             show.legend = FALSE) +
+  scale_colour_manual(values = country_colors) +
+  scale_size(range = c(2, 12)) +
+  labs(x = '% Aged', 
+       y = '% Young')
+
+ggplotly(gg)
+```
+
+## The code
+
+```{r}
+#| eval: false
+gg <- ggplot(globalPop, 
+       aes(x = Old, 
+           y = Young, 
+           size = Population, 
+           colour = Country)) +
+  geom_point(aes(size = Population,
+                 frame = Year),
+             alpha = 0.7, 
+             show.legend = FALSE) +
+  scale_colour_manual(values = country_colors) +
+  scale_size(range = c(2, 12)) +
+  labs(x = '% Aged', 
+       y = '% Young')
+
+ggplotly(gg)
+```
+
+## Plot (without legend)
+
+```{r}
+#| echo: false
+gg <- ggplot(globalPop, 
+       aes(x = Old, 
+           y = Young, 
+           size = Population, 
+           colour = Country)) +
+  geom_point(aes(size = Population,
+                 frame = Year),
+             alpha = 0.7) +
+  scale_colour_manual(values = country_colors) +
+  scale_size(range = c(2, 12)) +
+  labs(x = '% Aged', 
+       y = '% Young') + 
+  theme(legend.position='none')
+
+ggplotly(gg)
+```
+
+## The code
+
+```{r}
+#| eval: false
+gg <- ggplot(globalPop, 
+       aes(x = Old, 
+           y = Young, 
+           size = Population, 
+           colour = Country)) +
+  geom_point(aes(size = Population,
+                 frame = Year),
+             alpha = 0.7) +
+  scale_colour_manual(values = country_colors) +
+  scale_size(range = c(2, 12)) +
+  labs(x = '% Aged', 
+       y = '% Young') + 
+  theme(legend.position='none')
+
+ggplotly(gg)
+```
+:::
+
+## 4.5.2 an animated bubble plot: plot_ly() method
+
+::: panel-tabset
+## Plot
+
+```{r}
+#| echo: false
+bp <- globalPop %>%
+  plot_ly(x = ~Old, 
+          y = ~Young, 
+          size = ~Population, 
+          color = ~Continent,
+          sizes = c(2, 100),
+          frame = ~Year, 
+          text = ~Country, 
+          hoverinfo = "text",
+          type = 'scatter',
+          mode = 'markers'
+          ) %>%
+  layout(showlegend = FALSE)
+bp
+```
+
+## The code
+
+```{r}
+#| eval: false
+bp <- globalPop %>%
+  plot_ly(x = ~Old, 
+          y = ~Young, 
+          size = ~Population, 
+          color = ~Continent,
+          sizes = c(2, 100),
+          frame = ~Year, 
+          text = ~Country, 
+          hoverinfo = "text",
+          type = 'scatter',
+          mode = 'markers'
+          ) %>%
+  layout(showlegend = FALSE)
+bp
+```
+:::
+
+# 4.6 Reference
+
+-   [Getting Started](https://gganimate.com/articles/gganimate.html)
+
+-   Visit this [link](https://rpubs.com/raymondteo/dataviz8) for a very interesting implementation of gganimate by your senior.
+
+-   [Building an animation step-by-step with gganimate](https://www.alexcookson.com/post/2020-10-18-building-an-animation-step-by-step-with-gganimate/).
+
+-   [Creating a composite gif with multiple gganimate panels](https://solarchemist.se/2021/08/02/composite-gif-gganimate/)
