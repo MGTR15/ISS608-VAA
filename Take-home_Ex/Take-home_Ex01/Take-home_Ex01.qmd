@@ -16,18 +16,321 @@ execute:
 
 ## 1.1 Setting the scene
 
-A local online media company that publishes daily content on digital platforms is planning to release an article on demographic structures and distribution of Singapore in 2024.
+A local online media company that publishes daily content on digital platforms is planning to release an article on demographic structures and distribution of Singapore in 2024. This project will explore the demographic structure of Singapore’s resident population as of June 2024, which aims to uncover national and regional trends in age distribution and gender composition.
 
-## 1.2 The Task
+## 1.2 Tasks
 
-Assuming the role of the graphical editor of the media company, tasked to prepare at most three data visualization for the article.
-The task will be completed in two phases:
+As the graphical editor of the media company, this project aim to:
 
-Phase 1: Designing your own data visualisation
-Phase 2: Selecting one submission provided by your classmate, critic three good design principles and three areas for further improvement. With reference to the comment, prepare the makeover version of the data visualisation.
+1.  Clean and preprocess the demographic dataset.
+
+2.  Design and generate three targeted data visualizations:
+
+-   A national population pyramid by single year of age and sex.
+
+-   A regional bar chart or map showing median age by planning area.
+
+-   A sex ratio plot (males per 100 females) across planning areas.
+
+3.  Summarize key insights for each visualization to support the narrative.
 
 # 2 The Data
 
+The official dataset “Singapore Residents by Planning Area / Subzone, Single Year of Age and Sex” retrieve from [department of statistics](https://www.singstat.gov.sg/) will be used to explore.
+
+```{r}
+# Load necessary library
+library(readr)
+
+# Read the CSV file from the specified relative path
+respopagesex2024 <- read_csv("TakeHome_01/respopagesex2024.csv")
+
+```
+
 ## 2.1 Loading Packages
 
+The code chunk below uses p_load() of pacman package to check if tidyverse packages are installed in the computer. If they are, then they will be launched into R.
+
+```{r}
+pacman::p_load(tidyverse)
+```
+
+Beside tidyverse, following R packages will be used:
+
+- ggrepel: an R package provides geoms for ggplot2 to repel overlapping text labels.
+
+- ggthemes: an R package provides some extra themes, geoms, and scales for ‘ggplot2’.
+
+- hrbrthemes: an R package provides typography-centric themes and theme components for ggplot2.
+
+- patchwork: an R package for preparing composite figure created using ggplot2.
+
+- haven: Enables reading and writing of data files from statistical software packages like SPSS, Stata, and SAS.
+
+- ggiraph: for making ‘ggplot’ graphics interactive.
+
+- plotly: R library for plotting interactive statistical graphs.
+
+- DT: provides an R interface to the JavaScript library DataTables that create interactive table on html page.
+
+- knitr: Facilitates dynamic report generation by integrating R code into documents (used in R Markdown).
+
+- scales: Provides functions for scaling axes and legends in ggplot2 plots, including formatting numbers and dates.
+
+- ggridges: Allows creation of ridgeline plots (overlapping density plots) in ggplot2.
+
+- ggpubr: Enhances ggplot2 with publication-ready themes and functions for common tasks like adding statistical comparisons.
+
+- gganimate: Adds animation capabilities to ggplot2 visualizations.
+
+- gapminder: An excerpt of the data available at Gapminder.org. 
+
+- ggdist: Supports visualizations of distributions and uncertainty (e.g., intervals, densities) in ggplot2.
+
+- ggtext: Enables advanced text rendering (e.g., HTML/Markdown) in ggplot2 titles, subtitles, and labels
+
+- ggalt: Provides alternative geoms and statistical transformations not available in core ggplot2.
+
+- cowplot: Offers streamlined tools to align and arrange ggplot2-based plots into panels.
+
+```{r}
+pacman::p_load(tidyverse, ggrepel, ggthemes, 
+               hrbrthemes, patchwork, 
+               haven, ggiraph, plotly, DT, 
+               knitr, scales,
+               ggridges, ggpubr, 
+               gganimate, gapminder, ggdist, 
+               ggtext, ggalt,
+               cowplot)
+```
+
 ## 2.2 Cleaning data
+
+
+# 3 The Code
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Load and prepare data
+respopagesex2024 <- read_csv("TakeHome_01/respopagesex2024.csv")
+
+# Create histogram
+ggplot(data = respopagesex2024, aes(x = Pop)) +
+  geom_histogram(bins = 20, 
+                 boundary = 100, 
+                 color = "grey25", 
+                 fill = "grey90") +
+  theme_gray() +
+  ggtitle("Distribution of Population in Ang Mo Kio Town Centre (2024)") +
+  xlab("Gender Count") +
+  ylab("Frequency")
+```
+
+# 4 Total Population per Planning Area (2024)
+
+```{r}
+# Disable scientific notation globally
+options(scipen = 999)
+
+# Load data
+respopagesex2024 <- read_csv("TakeHome_01/respopagesex2024.csv")
+
+# Clean and summarize population by PA, including subzone count
+pop_by_pa <- respopagesex2024 %>%
+  mutate(Pop = as.numeric(Pop)) %>%
+  filter(!is.na(Pop) & Pop > 0) %>%
+  group_by(PA) %>%
+  summarise(
+    Total_Pop = sum(Pop, na.rm = TRUE),
+    Num_Subzones = n_distinct(SZ)  # Count unique subzones per PA
+  ) %>%
+  arrange(desc(Total_Pop))
+
+# Add tooltip column
+pop_by_pa <- pop_by_pa %>%
+  mutate(tooltip = paste0(
+    "Planning Area: ", PA,
+    "\nTotal Population: ", scales::comma(Total_Pop),
+    "\nNumber of Subzones: ", Num_Subzones
+  ))
+
+# Create interactive bar chart
+p <- ggplot(data = pop_by_pa, aes(x = reorder(PA, Total_Pop), y = Total_Pop)) +
+  geom_bar_interactive(
+    aes(tooltip = tooltip),
+    stat = "identity",
+    fill = "grey90",
+    color = "grey25"
+  ) +
+  theme_gray() +
+  ggtitle("Total Population by Planning Area (2024)") +
+  xlab("Planning Area") +
+  ylab("Total Population") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_y_continuous(
+    labels = comma,  # Format numbers with commas
+    breaks = seq(0, ceiling(max(pop_by_pa$Total_Pop, na.rm = TRUE) / 100000) * 100000, by = 100000),  # Breaks every 100,000
+    limits = c(0, ceiling(max(pop_by_pa$Total_Pop, na.rm = TRUE) / 100000) * 100000)  # Full range
+  )
+
+# Render interactive plot
+girafe(
+  ggobj = p,
+  width_svg = 8,
+  height_svg = 8 * 0.618
+)
+```
+
+## 4.1 By Gender
+
+```{r}
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(scales)
+library(ggiraph)
+
+# Disable scientific notation
+options(scipen = 999)
+
+# Load data
+respopagesex2024 <- read_csv("TakeHome_01/respopagesex2024.csv")
+
+# Summarize population by PA and Sex, including subzone count
+pop_by_pa_gender <- respopagesex2024 %>%
+  mutate(Pop = as.numeric(Pop)) %>%
+  filter(!is.na(Pop) & Pop > 0) %>%
+  group_by(PA, Sex) %>%
+  summarise(
+    Pop = sum(Pop, na.rm = TRUE),
+    Num_Subzones = n_distinct(SZ)
+  ) %>%
+  ungroup()
+
+# Calculate total population per PA for ordering
+pa_order <- pop_by_pa_gender %>%
+  group_by(PA) %>%
+  summarise(Total_Pop = sum(Pop)) %>%
+  arrange(desc(Total_Pop))
+
+# Add total population and tooltip
+pop_by_pa_gender <- pop_by_pa_gender %>%
+  left_join(pa_order, by = "PA") %>%
+  mutate(tooltip = paste0(
+    "Planning Area: ", PA,
+    "\nGender: ", Sex,
+    "\nPopulation: ", comma(Pop),
+    "\nTotal Population: ", comma(Total_Pop),
+    "\nNumber of Subzones: ", Num_Subzones
+  ))
+
+# Create grouped bar chart
+p <- ggplot(data = pop_by_pa_gender, aes(x = reorder(PA, Total_Pop), y = Pop, fill = Sex)) +
+  geom_bar_interactive(
+    aes(tooltip = tooltip),
+    stat = "identity",
+    position = "dodge"  # Side-by-side bars
+  ) +
+  theme_gray() +
+  ggtitle("Population by Planning Area and Gender, Singapore 2024") +
+  xlab("Planning Area") +
+  ylab("Population") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_y_continuous(
+    labels = comma,
+    breaks = seq(0, ceiling(max(pop_by_pa_gender$Pop, na.rm = TRUE) / 100000) * 100000, by = 100000),
+    limits = c(0, ceiling(max(pop_by_pa_gender$Pop, na.rm = TRUE) / 100000) * 100000)
+  ) +
+  scale_fill_manual(values = c("Males" = "grey70", "Females" = "grey90"))  # Distinct colors for genders
+
+# Render interactive plot
+girafe(
+  ggobj = p,
+  width_svg = 8,
+  height_svg = 8 * 0.618
+)
+```
+
+## 4.2 By Age
+
+```{r}
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(scales)
+library(ggiraph)
+
+# Disable scientific notation
+options(scipen = 999)
+
+# Load data
+respopagesex2024 <- read_csv("TakeHome_01/respopagesex2024.csv")
+
+# Create age groups
+pop_by_pa_age <- respopagesex2024 %>%
+  mutate(
+    Pop = as.numeric(Pop),
+    Age = ifelse(Age == "90_and_Over", 90, as.numeric(Age)),
+    Age_Group = case_when(
+      Age <= 19 ~ "0–19",
+      Age <= 39 ~ "20–39",
+      Age <= 59 ~ "40–59",
+      Age <= 79 ~ "60–79",
+      TRUE ~ "80+"
+    )
+  ) %>%
+  filter(!is.na(Pop) & Pop > 0) %>%
+  group_by(PA, Age_Group) %>%
+  summarise(
+    Pop = sum(Pop, na.rm = TRUE),
+    Num_Subzones = n_distinct(SZ)
+  ) %>%
+  ungroup()
+
+# Calculate total population per PA for ordering
+pa_order <- pop_by_pa_age %>%
+  group_by(PA) %>%
+  summarise(Total_Pop = sum(Pop)) %>%
+  arrange(desc(Total_Pop))
+
+# Add total population and tooltip
+pop_by_pa_age <- pop_by_pa_age %>%
+  left_join(pa_order, by = "PA") %>%
+  mutate(tooltip = paste0(
+    "Planning Area: ", PA,
+    "\nAge Group: ", Age_Group,
+    "\nPopulation: ", comma(Pop),
+    "\nTotal Population: ", comma(Total_Pop),
+    "\nNumber of Subzones: ", Num_Subzones
+  ))
+
+# Create stacked bar chart
+p <- ggplot(data = pop_by_pa_age, aes(x = reorder(PA, Total_Pop), y = Pop, fill = Age_Group)) +
+  geom_bar_interactive(
+    aes(tooltip = tooltip),
+    stat = "identity",
+    position = "stack"  # Stacked bars
+  ) +
+  theme_gray() +
+  ggtitle("Population by Planning Area and Age Group, Singapore 2024") +
+  xlab("Planning Area") +
+  ylab("Population") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_y_continuous(
+    labels = comma,
+    breaks = seq(0, ceiling(max(pa_order$Total_Pop, na.rm = TRUE) / 100000) * 100000, by = 100000),
+    limits = c(0, ceiling(max(pa_order$Total_Pop, na.rm = TRUE) / 100000) * 100000)
+  ) +
+  scale_fill_manual(values = c("0–19" = "grey95", "20–39" = "grey80", "40–59" = "grey65", "60–79" = "grey50", "80+" = "grey35"))
+
+# Render interactive plot
+girafe(
+  ggobj = p,
+  width_svg = 8,
+  height_svg = 8 * 0.618
+)
+```
+
+
