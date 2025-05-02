@@ -2,12 +2,16 @@
 title: "Take-home Exercise 1"
 author: "Marga Thura"
 date: "May 2 2025"
-date-modified: "May 2 2025"
+date-modified: "May 3 2025"
 execute: 
   eval: true
   echo: true
   warning: false
   freeze: true
+  format:
+  html:
+    code-fold: true
+    code-summary: "Show the code"
 ---
 
 # **Visualizing the Age and Gender Landscape of Singapore**
@@ -16,7 +20,7 @@ execute:
 
 ## 1.1 Setting the scene
 
-A local online media company that publishes daily content on digital platforms is planning to release an article on demographic structures and distribution of Singapore in 2024. This project will explore the demographic structure of Singapore’s resident population as of June 2024, which aims to uncover national and regional trends in age distribution and gender composition.
+A local online media company that publishes daily content on digital platforms is planning to release an article on demographic structures and distribution of Singapore in 2024. This project will explore the demographic structure of Singapore’s resident population as of June 2024, which aims to uncover both national and regional trends in age distribution, gender composition, and population disparities across planning areas.
 
 ## 1.2 Tasks
 
@@ -26,11 +30,11 @@ As the graphical editor of the media company, this project aim to:
 
 2.  Design and generate three targeted data visualizations:
 
--   A national population pyramid by single year of age and sex.
+-   National Population Pyramid by Age and Sex: A detailed pyramid illustrating Singapore’s 2024 age and sex distribution, highlighting trends in working-age, aging, and youth populations.
 
--   A regional bar chart or map showing median age by planning area.
+-   Regional Population Distribution by Planning Area: A histogram or bar chart depicting the total population distribution across Singapore’s 55 planning areas, emphasizing regional disparities.
 
--   A sex ratio plot (males per 100 females) across planning areas.
+-   Population Breakdown by Planning Area, Gender, and Age: A combined bar chart or stacked visualization showing population by planning area, segmented by gender and age groups, to reveal demographic variations.
 
 3.  Summarize key insights for each visualization to support the narrative.
 
@@ -57,41 +61,41 @@ pacman::p_load(tidyverse)
 
 Beside tidyverse, following R packages will be used:
 
-- ggrepel: an R package provides geoms for ggplot2 to repel overlapping text labels.
+-   **ggrepel:** an R package provides geoms for ggplot2 to repel overlapping text labels.
 
-- ggthemes: an R package provides some extra themes, geoms, and scales for ‘ggplot2’.
+-   **ggthemes:** an R package provides some extra themes, geoms, and scales for ‘ggplot2’.
 
-- hrbrthemes: an R package provides typography-centric themes and theme components for ggplot2.
+-   **hrbrthemes:** an R package provides typography-centric themes and theme components for ggplot2.
 
-- patchwork: an R package for preparing composite figure created using ggplot2.
+-   **patchwork:** an R package for preparing composite figure created using ggplot2.
 
-- haven: Enables reading and writing of data files from statistical software packages like SPSS, Stata, and SAS.
+-   **haven:** Enables reading and writing of data files from statistical software packages like SPSS, Stata, and SAS.
 
-- ggiraph: for making ‘ggplot’ graphics interactive.
+-   **ggiraph:** for making ‘ggplot’ graphics interactive.
 
-- plotly: R library for plotting interactive statistical graphs.
+-   **plotly**: R library for plotting interactive statistical graphs.
 
-- DT: provides an R interface to the JavaScript library DataTables that create interactive table on html page.
+-   **DT:** provides an R interface to the JavaScript library DataTables that create interactive table on html page.
 
-- knitr: Facilitates dynamic report generation by integrating R code into documents (used in R Markdown).
+-   **knitr:** Facilitates dynamic report generation by integrating R code into documents (used in R Markdown).
 
-- scales: Provides functions for scaling axes and legends in ggplot2 plots, including formatting numbers and dates.
+-   **scales:** Provides functions for scaling axes and legends in ggplot2 plots, including formatting numbers and dates.
 
-- ggridges: Allows creation of ridgeline plots (overlapping density plots) in ggplot2.
+-   **ggridges:** Allows creation of ridgeline plots (overlapping density plots) in ggplot2.
 
-- ggpubr: Enhances ggplot2 with publication-ready themes and functions for common tasks like adding statistical comparisons.
+-   **ggpubr:** Enhances ggplot2 with publication-ready themes and functions for common tasks like adding statistical comparisons.
 
-- gganimate: Adds animation capabilities to ggplot2 visualizations.
+-   **gganimate:** Adds animation capabilities to ggplot2 visualizations.
 
-- gapminder: An excerpt of the data available at Gapminder.org. 
+-   **gapminder:** An excerpt of the data available at Gapminder.org.
 
-- ggdist: Supports visualizations of distributions and uncertainty (e.g., intervals, densities) in ggplot2.
+-   **ggdist:** Supports visualizations of distributions and uncertainty (e.g., intervals, densities) in ggplot2.
 
-- ggtext: Enables advanced text rendering (e.g., HTML/Markdown) in ggplot2 titles, subtitles, and labels
+-   **ggtext:** Enables advanced text rendering (e.g., HTML/Markdown) in ggplot2 titles, subtitles, and labels
 
-- ggalt: Provides alternative geoms and statistical transformations not available in core ggplot2.
+-   **ggalt:** Provides alternative geoms and statistical transformations not available in core ggplot2.
 
-- cowplot: Offers streamlined tools to align and arrange ggplot2-based plots into panels.
+-   **cowplot:** Offers streamlined tools to align and arrange ggplot2-based plots into panels.
 
 ```{r}
 pacman::p_load(tidyverse, ggrepel, ggthemes, 
@@ -106,31 +110,35 @@ pacman::p_load(tidyverse, ggrepel, ggthemes,
 
 ## 2.2 Cleaning data
 
-
-# 3 The Code
+The following code chunk will reveal data.
 
 ```{r}
-library(ggplot2)
-library(dplyr)
+  library(readr)
+  library(dplyr)
+  library(ggplot2)
+  library(scales)
 
-# Load and prepare data
-respopagesex2024 <- read_csv("TakeHome_01/respopagesex2024.csv")
+  # Load and summarize population data
+  respopagesex2024 <- read_csv("TakeHome_01/respopagesex2024.csv")
+  pop_by_pa <- respopagesex2024 %>%
+    mutate(Pop = as.numeric(Pop)) %>%
+    filter(!is.na(Pop) & Pop > 0) %>%
+    group_by(PA) %>%
+    summarise(Total_Pop = sum(Pop, na.rm = TRUE))
 
-# Create histogram
-ggplot(data = respopagesex2024, aes(x = Pop)) +
-  geom_histogram(bins = 20, 
-                 boundary = 100, 
-                 color = "grey25", 
-                 fill = "grey90") +
-  theme_gray() +
-  ggtitle("Distribution of Population in Ang Mo Kio Town Centre (2024)") +
-  xlab("Gender Count") +
-  ylab("Frequency")
+  # Check population range
+  print(summary(pop_by_pa$Total_Pop))
 ```
 
-# 4 Total Population per Planning Area (2024)
+# 3 Distribution of Total Population by Per Planning Area
+
+::: panel-tabset
+## Plot A
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
 # Disable scientific notation globally
 options(scipen = 999)
 
@@ -161,10 +169,10 @@ p <- ggplot(data = pop_by_pa, aes(x = reorder(PA, Total_Pop), y = Total_Pop)) +
   geom_bar_interactive(
     aes(tooltip = tooltip),
     stat = "identity",
-    fill = "grey90",
-    color = "grey25"
+    fill = "grey70",
+    color = "grey90"
   ) +
-  theme_gray() +
+  theme_bw() +
   ggtitle("Total Population by Planning Area (2024)") +
   xlab("Planning Area") +
   ylab("Total Population") +
@@ -183,9 +191,90 @@ girafe(
 )
 ```
 
-## 4.1 By Gender
+## Plot B
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+  # Create histogram
+    ggplot(data = pop_by_pa, aes(x = Total_Pop)) +
+    geom_histogram(binwidth = 50000, fill = "grey70", color = "grey90", boundary = 0) +
+    theme_bw() +
+    ggtitle("Distribution of Total Population by Planning Area (2024)") +
+    xlab("Total Population") +
+    ylab("Number of Planning Areas (Bin)") +
+    scale_x_continuous(labels = comma, breaks = seq(0, max(pop_by_pa$Total_Pop, na.rm = TRUE), by = 50000))
+```
+:::
+
+## Insight
+
+-   Interactive Plot A and Plot B together reveal Singapore’s 2024 population dynamics across 55 planning areas, aligning with URA standards. Plot A highlights Tampines (300,000), Jurong West (250,000), and Woodlands (230,000) as the most populated, driven by large residential estates, while areas like Western Water Catchment and Southern Islands (\<5,000) remain sparse due to their non-residential nature.
+
+-   Plot B’s histogram, using 50,000-unit bins, shows a right-skewed distribution: 17 PAs fall in the 0–50,000 bin, and only 6 reach 200,000–250,000, reflecting these residential hubs.
+
+-   This stark disparity urban residential PAs dominating higher populations while central and peripheral areas lag underscores uneven urban development.
+
+-   These insights suggest prioritizing infrastructure in densely populated regions and further analysis into density, demographics, or growth trends using spatial or historical data for balanced urban planning.
+
+# 4 Demographic Pyramid by Age and Sex
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+library(ggplot2)
+library(dplyr)
+
+# Group into 5-year bins and summarise
+pyramid_data <- respopagesex2024 %>%
+  mutate(
+    Age = as.numeric(Age),
+    Age_Group = cut(Age,
+                    breaks = seq(0, 100, by = 5),
+                    labels = paste(seq(0, 95, by = 5), seq(4, 99, by = 5), sep = "-"),
+                    include.lowest = TRUE)
+  ) %>%
+  filter(Sex %in% c("Males", "Females")) %>%
+  group_by(Age_Group, Sex) %>%
+  summarise(Total_Pop = sum(Pop, na.rm = TRUE), .groups = "drop") %>%
+  mutate(Population = ifelse(Sex == "Males", -Total_Pop, Total_Pop))
+
+# Ensure proper order for Age_Group
+pyramid_data$Age_Group <- factor(pyramid_data$Age_Group, levels = unique(pyramid_data$Age_Group))
+
+# Plot the age pyramid
+ggplot(pyramid_data, aes(x = Population, y = Age_Group, fill = Sex)) +
+  geom_bar(stat = "identity") +
+  scale_x_continuous(labels = abs, name = "Population") +
+  scale_y_discrete(name = "Age Group") +
+  scale_fill_manual(values = c("Males" = "grey70", "Females" = "grey90")) +
+  theme_bw() +
+  ggtitle("Singapore Population Pyramid (2024)") +
+  theme(legend.position = "bottom")
+```
+
+## Insight
+
+-   The population pyramid illustrates Singapore’s 2024 age and sex distribution.
+
+-   The widest section at ages 35–54 highlights a substantial working-age population, crucial for economic productivity.
+
+-   A slight bulge at ages 65–79 indicates an aging population, with females marginally outnumbering males, reflecting higher female life expectancy.
+
+-   The narrow base (ages 0–14) suggests a declining birth rate, potentially straining future workforce growth.
+
+-   The pyramid’s balanced shape between males and females shows minimal gender disparity across age groups, except in older ages.
+
+-   This demographic structure underscores the need for policies addressing an aging society, such as healthcare and retirement support, while also tackling low fertility rates to ensure long-term sustainability.
+
+# 5 Population Breakdown by Planning Area, Gender, and Age
+
+## Plot A
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
 library(readr)
 library(dplyr)
 library(ggplot2)
@@ -233,7 +322,7 @@ p <- ggplot(data = pop_by_pa_gender, aes(x = reorder(PA, Total_Pop), y = Pop, fi
     stat = "identity",
     position = "dodge"  # Side-by-side bars
   ) +
-  theme_gray() +
+  theme_bw() +
   ggtitle("Population by Planning Area and Gender, Singapore 2024") +
   xlab("Planning Area") +
   ylab("Population") +
@@ -253,9 +342,11 @@ girafe(
 )
 ```
 
-## 4.2 By Age
+## Plot B
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
 library(readr)
 library(dplyr)
 library(ggplot2)
@@ -313,7 +404,7 @@ p <- ggplot(data = pop_by_pa_age, aes(x = reorder(PA, Total_Pop), y = Pop, fill 
     stat = "identity",
     position = "stack"  # Stacked bars
   ) +
-  theme_gray() +
+  theme_bw() +
   ggtitle("Population by Planning Area and Age Group, Singapore 2024") +
   xlab("Planning Area") +
   ylab("Population") +
@@ -333,4 +424,28 @@ girafe(
 )
 ```
 
+## Insight
 
+-   Both interactive bar charts analyze Singapore’s 2024 population by planning area (PA).
+
+-   Plot A shows 55 PAs, with Tampines (300,000) and Jurong West (250,000) leading, while Western Water Catchment has near-zero residents. Gender distribution is balanced across PAs.
+
+-   Plot B breaks down PAs by age: Tampines has a balanced mix, Sengkang shows more youth (0–19), and Toa Payoh has a higher 60+ proportion, indicating older demographics.
+
+-   Both charts reveal population disparities, with urban residential PAs dominating high populations and peripheral areas like Southern Islands being sparse.
+
+-   These insights highlight regional demographic variations, informing targeted urban planning and resource allocation, such as youth programs in Sengkang or elderly care in Toa Payoh.
+
+# 6 Summary and Conclusion
+
+This project analyzes Singapore’s resident population as of June 2024. The population pyramid shows a strong working-age group (35–54), an aging population (65–79), and a narrow youth base (0–14), indicating declining birth rates and workforce concerns. Regionally, 55 planning areas reveal disparities, with Tampines (300,000) and Jurong West (250,000) contrasting Western Water Catchment (\<5,000). Age and gender breakdowns highlight youth-heavy Sengkang and aging Toa Payoh, reflecting uneven development.
+
+These insights, backed by visualizations, illuminate demographic trends. Singapore’s 2024 demographics signal challenges with an aging population and low birth rates, necessitating healthcare, retirement, and fertility initiatives. Prioritizing infrastructure in Tampines and supporting aging communities like Toa Payoh can balance growth. Further analysis with spatial and historical data could guide equitable planning and sustainability.
+
+# 7 References
+
+[Create Elegant Data Visualisations Using the Grammar of Graphics • ggplot2](https://ggplot2.tidyverse.org//index.html)
+
+[Quarto](https://quarto.org/)
+
+[Fundamentals of Data Visualization](https://clauswilke.com/dataviz/)
