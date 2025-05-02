@@ -1,0 +1,33 @@
+---
+title: "Take-home Exercise 1"
+author: "Marga Thura"
+date: "May 2 2025"
+date-modified: "May 2 2025"
+execute: 
+  eval: true
+  echo: true
+  warning: false
+  freeze: true
+---
+
+# **Visualizing the Age and Gender Landscape of Singapore**
+
+# 1 Overview
+
+## 1.1 Setting the scene
+
+A local online media company that publishes daily content on digital platforms is planning to release an article on demographic structures and distribution of Singapore in 2024.
+
+## 1.2 The Task
+
+Assuming the role of the graphical editor of the media company, tasked to prepare at most three data visualization for the article.
+The task will be completed in two phases:
+
+Phase 1: Designing your own data visualisation
+Phase 2: Selecting one submission provided by your classmate, critic three good design principles and three areas for further improvement. With reference to the comment, prepare the makeover version of the data visualisation.
+
+# 2 The Data
+
+## 2.1 Loading Packages
+
+## 2.2 Cleaning data
