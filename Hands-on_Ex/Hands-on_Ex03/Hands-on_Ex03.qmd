@@ -2,7 +2,7 @@
 title: "Hands-on Exercise 03"
 author: "Marga Thura"
 date: "April 26 2025"
-date-modified: "April 26 2025"
+date-modified: "May 2 2025"
 execute: 
   eval: true
   echo: true
