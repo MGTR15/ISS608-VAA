@@ -8,10 +8,6 @@ execute:
   echo: true
   warning: false
   freeze: true
-  format:
-  html:
-    code-fold: true
-    code-summary: "Show the code"
 ---
 
 # **Visualizing the Age and Gender Landscape of Singapore**
@@ -30,11 +26,13 @@ As the graphical editor of the media company, this project aim to:
 
 2.  Design and generate three targeted data visualizations:
 
--   National Population Pyramid by Age and Sex: A detailed pyramid illustrating Singapore’s 2024 age and sex distribution, highlighting trends in working-age, aging, and youth populations.
+-   **Top 10 Planning Areas by Total Population**: A horizontal bar chart focusing on the ten most populous planning areas to highlight urban population concentration, particularly in areas like Tampines, Bedok, and Sengkang.
 
--   Regional Population Distribution by Planning Area: A histogram or bar chart depicting the total population distribution across Singapore’s 55 planning areas, emphasizing regional disparities.
+-   **Population Pyramid by Age and Sex**: A detailed pyramid chart that illustrates Singapore’s national age and gender structure, revealing the dominance of the working-age population, the presence of an aging society, and gender differences in older age groups.
 
--   Population Breakdown by Planning Area, Gender, and Age: A combined bar chart or stacked visualization showing population by planning area, segmented by gender and age groups, to reveal demographic variations.
+<!-- -->
+
+-    **Age and Gender Distribution in Top 5 Planning Areas**: A set of stacked bar and ridgeline plots showing how population varies by age group and gender within the top five planning areas, offering insights into regional differences in youth, working-age, and elderly populations.
 
 3.  Summarize key insights for each visualization to support the narrative.
 
@@ -110,7 +108,40 @@ pacman::p_load(tidyverse, ggrepel, ggthemes,
 
 ## 2.2 Cleaning data
 
-The following code chunk will reveal data.
+To prepare the dataset for all tasks, the following code will loads, cleans, and prepares the demographic data (respopagesex2024.csv) for analysis and visualization to make sure:
+
+-   All numeric columns are actually numeric (for calculations)
+
+-   Categorical columns behave predictably (for grouping)
+
+-   Only analyzing valid population entries (no missing or zero values).
+
+```{r}
+library(readr)
+library(dplyr)
+
+# Load the dataset
+respop <- read_csv("TakeHome_01/respopagesex2024.csv")
+
+# Convert types and clean
+respop_clean <- respop %>%
+  mutate(
+    Pop = as.numeric(Pop),
+    Age = as.numeric(Age),
+    PA = as.factor(PA),
+    SZ = as.factor(SZ),
+    Sex = factor(Sex, levels = c("Males", "Females"))
+  ) %>%
+  filter(!is.na(Pop), Pop > 0)
+```
+
+The following code chunk will loads the dataset.
+
+-   Cleans it by ensuring population values are numeric and valid.
+
+-   Aggregates population totals by planning area.
+
+-   Outputs a basic statistical overview of how population is distributed across Singapore’s planning areas.
 
 ```{r}
   library(readr)
@@ -130,10 +161,60 @@ The following code chunk will reveal data.
   print(summary(pop_by_pa$Total_Pop))
 ```
 
-# 3 Distribution of Total Population by Per Planning Area
+The following code chunk will loads the dataset, deep clean and check for missing or abnormal entries.
 
-::: panel-tabset
-## Plot A
+```{r}
+summary(respopagesex2024)
+any(is.na(respopagesex2024$PA))
+any(is.na(respopagesex2024$SZ))
+any(respopagesex2024$PA == "")
+```
+
+# 3 Distribution of Population Across Singapore’s Planning Areas
+
+## Plot 1
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+library(dplyr)
+library(ggplot2)
+library(scales)
+library(readr)
+
+# Load data
+respopagesex2024 <- read_csv("TakeHome_01/respopagesex2024.csv")
+
+# Clean and summarize population by PA
+pop_by_pa <- respopagesex2024 %>%
+  mutate(Pop = as.numeric(Pop)) %>%
+  filter(!is.na(Pop) & Pop > 0) %>%
+  group_by(PA) %>%
+  summarise(
+    Total_Pop = sum(Pop, na.rm = TRUE),
+    Num_Subzones = n_distinct(SZ)
+  ) %>%
+  arrange(desc(Total_Pop)) %>%
+  slice_max(order_by = Total_Pop, n = 10) 
+
+# Plot
+ggplot(pop_by_pa, aes(x = reorder(PA, Total_Pop), y = Total_Pop)) +
+  geom_bar(stat = "identity", fill = "grey70", color = "grey90") +
+  geom_text(aes(label = comma(Total_Pop)), hjust = -0.1, size = 3.5) +  # Add labels
+  coord_flip() +  # Horizontal bars
+  theme_minimal() +
+  labs(
+    title = "Top 10 Most Populous Planning Areas (2024)",
+    x = "Planning Area",
+    y = "Total Population"
+  ) +
+  scale_y_continuous(
+    labels = comma,
+    limits = c(0, max(pop_by_pa$Total_Pop) * 1.1)  # Extra space for text
+  )
+```
+
+## Plot 2
 
 ```{r}
 #| code-fold: true
@@ -144,6 +225,13 @@ options(scipen = 999)
 
 # Load data
 respopagesex2024 <- read_csv("TakeHome_01/respopagesex2024.csv")
+
+# Trim whitespace from PA and SZ
+respopagesex2024 <- respopagesex2024 %>%
+  mutate(
+    PA = trimws(PA),
+    SZ = trimws(SZ)
+  )
 
 # Clean and summarize population by PA, including subzone count
 pop_by_pa <- respopagesex2024 %>%
@@ -156,68 +244,47 @@ pop_by_pa <- respopagesex2024 %>%
   ) %>%
   arrange(desc(Total_Pop))
 
-# Add tooltip column
-pop_by_pa <- pop_by_pa %>%
-  mutate(tooltip = paste0(
-    "Planning Area: ", PA,
-    "\nTotal Population: ", scales::comma(Total_Pop),
-    "\nNumber of Subzones: ", Num_Subzones
-  ))
-
-# Create interactive bar chart
+# Create bar chart
 p <- ggplot(data = pop_by_pa, aes(x = reorder(PA, Total_Pop), y = Total_Pop)) +
-  geom_bar_interactive(
-    aes(tooltip = tooltip),
+  geom_bar(
     stat = "identity",
     fill = "grey70",
     color = "grey90"
   ) +
+  geom_text(
+    aes(label = comma(Total_Pop)),
+    angle = 90,      # Keep text horizontal
+    hjust = 0.5,    # Center horizontally
+    vjust = -0.5,   # Above the bar
+    size = 3
+  ) +
   theme_bw() +
-  ggtitle("Total Population by Planning Area (2024)") +
+  ggtitle("Population Per Planning Area (2024)") +
   xlab("Planning Area") +
   ylab("Total Population") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  theme(
+    axis.text.x = element_text(angle = 55, hjust = 1)
+  ) +
   scale_y_continuous(
-    labels = comma,  # Format numbers with commas
-    breaks = seq(0, ceiling(max(pop_by_pa$Total_Pop, na.rm = TRUE) / 100000) * 100000, by = 100000),  # Breaks every 100,000
-    limits = c(0, ceiling(max(pop_by_pa$Total_Pop, na.rm = TRUE) / 100000) * 100000)  # Full range
+    labels = comma,
+    breaks = seq(0, ceiling(max(pop_by_pa$Total_Pop, na.rm = TRUE) / 100000) * 100000, by = 100000),
+    limits = c(0, ceiling(max(pop_by_pa$Total_Pop, na.rm = TRUE) / 100000) * 100000)
   )
 
-# Render interactive plot
-girafe(
-  ggobj = p,
-  width_svg = 8,
-  height_svg = 8 * 0.618
-)
+print(p)
 ```
-
-## Plot B
-
-```{r}
-#| code-fold: true
-#| code-summary: "Show the code"
-  # Create histogram
-    ggplot(data = pop_by_pa, aes(x = Total_Pop)) +
-    geom_histogram(binwidth = 50000, fill = "grey70", color = "grey90", boundary = 0) +
-    theme_bw() +
-    ggtitle("Distribution of Total Population by Planning Area (2024)") +
-    xlab("Total Population") +
-    ylab("Number of Planning Areas (Bin)") +
-    scale_x_continuous(labels = comma, breaks = seq(0, max(pop_by_pa$Total_Pop, na.rm = TRUE), by = 50000))
-```
-:::
 
 ## Insight
 
--   Interactive Plot A and Plot B together reveal Singapore’s 2024 population dynamics across 55 planning areas, aligning with URA standards. Plot A highlights Tampines (300,000), Jurong West (250,000), and Woodlands (230,000) as the most populated, driven by large residential estates, while areas like Western Water Catchment and Southern Islands (\<5,000) remain sparse due to their non-residential nature.
+-   Plot 1, a bar chart, lists the top 10 most populous planning areas (PAs): Tampines (284,950), Bedok (277,660), Sengkang (265,550), Jurong West (257,910), Woodlands (255,510), Yishun (230,320), Hougang (228,780), Punggol (199,880), Choa Chu Kang (190,640), and Bukit Batok (168,390). This highlights Tampines as the densest hub.
 
--   Plot B’s histogram, using 50,000-unit bins, shows a right-skewed distribution: 17 PAs fall in the 0–50,000 bin, and only 6 reach 200,000–250,000, reflecting these residential hubs.
+-   Plot 2, a stacked bar chart, shows total population across all PAs, with the top 10 aligning with Plot 1’s rankings, peaking at Tampines and tapering off in less populated areas like Western Water Catchment.
 
--   This stark disparity urban residential PAs dominating higher populations while central and peripheral areas lag underscores uneven urban development.
+-   Both plots confirm a concentration of population in urban PAs, with a clear hierarchy led by Tampines, Bedok, and Sengkang. This indicate a need for targeted infrastructure and services in these high-density areas, with potential resource allocation challenges in less populated regions.
 
--   These insights suggest prioritizing infrastructure in densely populated regions and further analysis into density, demographics, or growth trends using spatial or historical data for balanced urban planning.
+# 4 Distribution of Singapore’s Population by Age and Gender
 
-# 4 Demographic Pyramid by Age and Sex
+## Plot 1
 
 ```{r}
 #| code-fold: true
@@ -254,23 +321,7 @@ ggplot(pyramid_data, aes(x = Population, y = Age_Group, fill = Sex)) +
   theme(legend.position = "bottom")
 ```
 
-## Insight
-
--   The population pyramid illustrates Singapore’s 2024 age and sex distribution.
-
--   The widest section at ages 35–54 highlights a substantial working-age population, crucial for economic productivity.
-
--   A slight bulge at ages 65–79 indicates an aging population, with females marginally outnumbering males, reflecting higher female life expectancy.
-
--   The narrow base (ages 0–14) suggests a declining birth rate, potentially straining future workforce growth.
-
--   The pyramid’s balanced shape between males and females shows minimal gender disparity across age groups, except in older ages.
-
--   This demographic structure underscores the need for policies addressing an aging society, such as healthcare and retirement support, while also tackling low fertility rates to ensure long-term sustainability.
-
-# 5 Population Breakdown by Planning Area, Gender, and Age
-
-## Plot A
+## Plot 2
 
 ```{r}
 #| code-fold: true
@@ -279,7 +330,6 @@ library(readr)
 library(dplyr)
 library(ggplot2)
 library(scales)
-library(ggiraph)
 
 # Disable scientific notation
 options(scipen = 999)
@@ -287,71 +337,62 @@ options(scipen = 999)
 # Load data
 respopagesex2024 <- read_csv("TakeHome_01/respopagesex2024.csv")
 
-# Summarize population by PA and Sex, including subzone count
-pop_by_pa_gender <- respopagesex2024 %>%
-  mutate(Pop = as.numeric(Pop)) %>%
-  filter(!is.na(Pop) & Pop > 0) %>%
-  group_by(PA, Sex) %>%
-  summarise(
-    Pop = sum(Pop, na.rm = TRUE),
-    Num_Subzones = n_distinct(SZ)
+# Convert Age Seyfert’s correction for age groups
+pop_by_age <- respopagesex2024 %>%
+  mutate(
+    Pop = as.numeric(Pop),
+    Age_Num = case_when(
+      Age == "90_and_Over" ~ 90,
+      TRUE ~ as.numeric(gsub("–.*", "", Age)) + 2.5  # Midpoint of 5-year age groups
+    )
   ) %>%
-  ungroup()
+  filter(!is.na(Pop) & Pop > 0)
 
-# Calculate total population per PA for ordering
-pa_order <- pop_by_pa_gender %>%
-  group_by(PA) %>%
-  summarise(Total_Pop = sum(Pop)) %>%
-  arrange(desc(Total_Pop))
+# Expand data to represent each individual
+age_data <- pop_by_age %>%
+  uncount(Pop)  # Repeats each row by Pop value
 
-# Add total population and tooltip
-pop_by_pa_gender <- pop_by_pa_gender %>%
-  left_join(pa_order, by = "PA") %>%
-  mutate(tooltip = paste0(
-    "Planning Area: ", PA,
-    "\nGender: ", Sex,
-    "\nPopulation: ", comma(Pop),
-    "\nTotal Population: ", comma(Total_Pop),
-    "\nNumber of Subzones: ", Num_Subzones
-  ))
-
-# Create grouped bar chart
-p <- ggplot(data = pop_by_pa_gender, aes(x = reorder(PA, Total_Pop), y = Pop, fill = Sex)) +
-  geom_bar_interactive(
-    aes(tooltip = tooltip),
-    stat = "identity",
-    position = "dodge"  # Side-by-side bars
+# Create histogram
+p <- ggplot(data = age_data, aes(x = Age_Num)) +
+  geom_histogram(
+    binwidth = 5,  # 5-year age bins
+    fill = "grey70",
+    color = "grey90"
   ) +
   theme_bw() +
-  ggtitle("Population by Planning Area and Gender, Singapore 2024") +
-  xlab("Planning Area") +
+  ggtitle("Age Distribution of Singapore Population, 2024") +
+  xlab("Age (Years)") +
   ylab("Population") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  scale_y_continuous(
-    labels = comma,
-    breaks = seq(0, ceiling(max(pop_by_pa_gender$Pop, na.rm = TRUE) / 100000) * 100000, by = 100000),
-    limits = c(0, ceiling(max(pop_by_pa_gender$Pop, na.rm = TRUE) / 100000) * 100000)
+  scale_x_continuous(
+    breaks = seq(0, 100, by = 10),
+    limits = c(0, 100)
   ) +
-  scale_fill_manual(values = c("Males" = "grey70", "Females" = "grey90"))  # Distinct colors for genders
+  scale_y_continuous(labels = comma)
 
-# Render interactive plot
-girafe(
-  ggobj = p,
-  width_svg = 8,
-  height_svg = 8 * 0.618
-)
+# Render plot
+print(p)
 ```
 
-## Plot B
+## Insight
+
+-   Plot 1, a population pyramid, shows the age and gender distribution across the entire population, with a broad working-age base (30–59), a smaller youth (0–19), and aN elderly group (60–80+). Females slightly outnumber males in the 70+ age groups, reflecting higher life expectancy.
+
+-   Plot 2, a histogram, displays the overall age distribution, confirming the working-age peak (30–50 years), a small youth population, and a gradual increase in elderly (60–80+), with a slight female skew in older ages.
+
+-   Together, they highlight Singapore’s aging population, with a shrinking youth base, a dominant working-age group, and a gender imbalance in the elderly (more females). This indicate a need for eldercare (especially for females), workforce support, and policies to address low birth rates.
+
+# 5 Distribution of Population and Age Across Top Five Planning Areas by Gender and Age Group
+
+## Plot 1
 
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code"
+
 library(readr)
 library(dplyr)
 library(ggplot2)
 library(scales)
-library(ggiraph)
 
 # Disable scientific notation
 options(scipen = 999)
@@ -380,35 +421,34 @@ pop_by_pa_age <- respopagesex2024 %>%
   ) %>%
   ungroup()
 
-# Calculate total population per PA for ordering
+# Calculate total population per PA for ordering and select top 10
 pa_order <- pop_by_pa_age %>%
   group_by(PA) %>%
   summarise(Total_Pop = sum(Pop)) %>%
-  arrange(desc(Total_Pop))
+  arrange(desc(Total_Pop)) %>%
+  slice_head(n = 5)
 
-# Add total population and tooltip
+# Filter data to top 10 PAs
 pop_by_pa_age <- pop_by_pa_age %>%
-  left_join(pa_order, by = "PA") %>%
-  mutate(tooltip = paste0(
-    "Planning Area: ", PA,
-    "\nAge Group: ", Age_Group,
-    "\nPopulation: ", comma(Pop),
-    "\nTotal Population: ", comma(Total_Pop),
-    "\nNumber of Subzones: ", Num_Subzones
-  ))
+  filter(PA %in% pa_order$PA)
+
+# Add total population
+pop_by_pa_age <- pop_by_pa_age %>%
+  left_join(pa_order, by = "PA")
 
 # Create stacked bar chart
-p <- ggplot(data = pop_by_pa_age, aes(x = reorder(PA, Total_Pop), y = Pop, fill = Age_Group)) +
-  geom_bar_interactive(
-    aes(tooltip = tooltip),
+p1 <- ggplot(data = pop_by_pa_age, aes(x = reorder(PA, Total_Pop), y = Pop, fill = Age_Group)) +
+  geom_bar(
     stat = "identity",
     position = "stack"  # Stacked bars
   ) +
   theme_bw() +
-  ggtitle("Population by Planning Area and Age Group, Singapore 2024") +
+  ggtitle("Population by Top 5 Planning Areas and Age Group, Singapore 2024") +
   xlab("Planning Area") +
   ylab("Population") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  theme(
+    axis.text.x = element_text(angle = 55, hjust = 1)
+  ) +
   scale_y_continuous(
     labels = comma,
     breaks = seq(0, ceiling(max(pa_order$Total_Pop, na.rm = TRUE) / 100000) * 100000, by = 100000),
@@ -416,31 +456,108 @@ p <- ggplot(data = pop_by_pa_age, aes(x = reorder(PA, Total_Pop), y = Pop, fill 
   ) +
   scale_fill_manual(values = c("0–19" = "grey95", "20–39" = "grey80", "40–59" = "grey65", "60–79" = "grey50", "80+" = "grey35"))
 
-# Render interactive plot
-girafe(
-  ggobj = p,
-  width_svg = 8,
-  height_svg = 8 * 0.618
-)
+# Render plot
+print(p1)
+```
+
+## Plot 2
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+#| fig-width: 10
+#| fig-height: 6
+
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(scales)
+library(ggridges)
+
+# Disable scientific notation
+options(scipen = 999)
+
+# Load data
+respopagesex2024 <- read_csv("TakeHome_01/respopagesex2024.csv")
+
+# Prepare data: Convert Age to numeric
+pop_data <- respopagesex2024 %>%
+  mutate(
+    Pop = as.numeric(Pop),
+    Age_Num = case_when(
+      Age == "90_and_Over" ~ 90,
+      TRUE ~ as.numeric(gsub("–.*", "", Age)) + 2.5  # Midpoint of 5-year age groups
+    )
+  ) %>%
+  filter(!is.na(Pop) & Pop > 0 & !is.na(Age_Num))
+
+# Order PAs by total population and select top 10
+pa_order <- pop_data %>%
+  group_by(PA) %>%
+  summarise(Total_Pop = sum(Pop, na.rm = TRUE)) %>%
+  arrange(desc(Total_Pop)) %>%
+  slice_head(n = 5) %>%
+  pull(PA)
+
+# Filter data to top 10 PAs
+age_data <- pop_data %>%
+  filter(PA %in% pa_order) %>%
+  uncount(Pop)  # Expand data to represent each individual (weighted by Pop)
+
+# Create ridgeline plot
+p2 <- ggplot(data = age_data, aes(x = Age_Num, y = factor(PA, levels = rev(pa_order)), height = ..density..)) +
+  geom_density_ridges(
+    stat = "density",
+    fill = "grey20",
+    color = "grey90",
+    scale = 1.5,  # Controls ridge overlap
+    alpha = 1.5
+  ) +
+  facet_wrap(~ Sex, ncol = 2) +
+  theme_bw() +
+  ggtitle("Age Distribution in Top 5 Populated Planning Areas by Gender, Singapore 2024") +
+  xlab("Age (Years)") +
+  ylab("Planning Area") +
+  scale_x_continuous(
+    breaks = seq(0, 100, by = 20),
+    limits = c(0, 100)
+  ) +
+  theme(
+    axis.text.y = element_text(size = 12),  # Larger text for fewer PAs
+    axis.text.x = element_text(size = 12),
+    axis.title = element_text(size = 12),
+    plot.title = element_text(size = 15),
+    strip.text = element_text(size = 12),
+    strip.background = element_rect(fill = "grey90")
+  )
+
+# Render plot
+print(p2)
 ```
 
 ## Insight
 
--   Both interactive bar charts analyze Singapore’s 2024 population by planning area (PA).
+-   Both plots provide insights into Singapore’s 2024 population across the top 5 planning areas (PAs): Tampines, Bedok, Sengkang, Jurong West, and Woodlands.
 
--   Plot A shows 55 PAs, with Tampines (300,000) and Jurong West (250,000) leading, while Western Water Catchment has near-zero residents. Gender distribution is balanced across PAs.
+-   The stacked bar chart (Plot 1) shows Tampines as the most populous (300,000), with a dominant working-age group (20–59) across all PAs, a small youth group (0–19), and notable elderly groups (60–80+) in Bedok and Woodlands.
 
--   Plot B breaks down PAs by age: Tampines has a balanced mix, Sengkang shows more youth (0–19), and Toa Payoh has a higher 60+ proportion, indicating older demographics.
+-   The ridgeline plot (Plot 2) confirms these trends, highlighting working-age peaks at 30–50, a young peak in Sengkang (0–20), and broader elderly curves in Bedok and Woodlands.
 
--   Both charts reveal population disparities, with urban residential PAs dominating high populations and peripheral areas like Southern Islands being sparse.
-
--   These insights highlight regional demographic variations, informing targeted urban planning and resource allocation, such as youth programs in Sengkang or elderly care in Toa Payoh.
+-   Gender-wise, females show higher elderly presence (60–80+), while males peak at 30–50. Sengkang is likely family-oriented, while Bedok and Woodlands are aging, and Tampines and Jurong West are balanced.
 
 # 6 Summary and Conclusion
 
-This project analyzes Singapore’s resident population as of June 2024. The population pyramid shows a strong working-age group (35–54), an aging population (65–79), and a narrow youth base (0–14), indicating declining birth rates and workforce concerns. Regionally, 55 planning areas reveal disparities, with Tampines (300,000) and Jurong West (250,000) contrasting Western Water Catchment (\<5,000). Age and gender breakdowns highlight youth-heavy Sengkang and aging Toa Payoh, reflecting uneven development.
+This project visually explores Singapore’s 2024 resident population using official demographic data to highlight trends in age, gender, and regional distribution.
 
-These insights, backed by visualizations, illuminate demographic trends. Singapore’s 2024 demographics signal challenges with an aging population and low birth rates, necessitating healthcare, retirement, and fertility initiatives. Prioritizing infrastructure in Tampines and supporting aging communities like Toa Payoh can balance growth. Further analysis with spatial and historical data could guide equitable planning and sustainability.
+Key findings:
+
+-   **Urban areas are densely populated**: The top 10 planning zones—like Tampines, Bedok, and Sengkang—hold a large share of residents, creating demands for infrastructure.
+
+-   **Age and gender patterns**: Most people fall within the working-age group (30–59), with fewer young residents and a rising elderly population (especially women), reflecting longer life expectancy.
+
+-   **Regional differences**: Each area has unique demographics—Sengkang has a younger population, Bedok and Woodlands have more elderly residents, and Tampines and Jurong West are more balanced.
+
+Overall, Singapore’s population is aging, with varying needs across regions. Policymakers should adapt by improving eldercare in aging areas, supporting youth and families where needed, and scaling public services in crowded districts. These visuals can help people understand these trends and guide decisions in urban planning, healthcare, and social services.
 
 # 7 References
 
