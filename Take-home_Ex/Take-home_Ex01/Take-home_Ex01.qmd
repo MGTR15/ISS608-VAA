@@ -551,11 +551,11 @@ This project visually explores Singapore’s 2024 resident population using offi
 
 Key findings:
 
--   **Urban areas are densely populated**: The top 10 planning zones—like Tampines, Bedok, and Sengkang—hold a large share of residents, creating demands for infrastructure.
+-   **Urban areas are densely populated**: The top 10 planning zones Tampines, Bedok, and Sengkang hold a large share of residents, creating demands for infrastructure.
 
 -   **Age and gender patterns**: Most people fall within the working-age group (30–59), with fewer young residents and a rising elderly population (especially women), reflecting longer life expectancy.
 
--   **Regional differences**: Each area has unique demographics—Sengkang has a younger population, Bedok and Woodlands have more elderly residents, and Tampines and Jurong West are more balanced.
+-   **Regional differences**: Each area has unique demographics Sengkang has a younger population, Bedok and Woodlands have more elderly residents, and Tampines and Jurong West are more balanced.
 
 Overall, Singapore’s population is aging, with varying needs across regions. Policymakers should adapt by improving eldercare in aging areas, supporting youth and families where needed, and scaling public services in crowded districts. These visuals can help people understand these trends and guide decisions in urban planning, healthcare, and social services.
 
