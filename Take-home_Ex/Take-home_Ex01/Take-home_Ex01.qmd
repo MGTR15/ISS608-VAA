@@ -32,7 +32,7 @@ As the graphical editor of the media company, this project aim to:
 
 <!-- -->
 
--    **Age and Gender Distribution in Top 5 Planning Areas**: A set of stacked bar and ridgeline plots showing how population varies by age group and gender within the top five planning areas, offering insights into regional differences in youth, working-age, and elderly populations.
+-   **Age and Gender Distribution in Top 5 Planning Areas**: A set of stacked bar and ridgeline plots showing how population varies by age group and gender within the top five planning areas, offering insights into regional differences in youth, working-age, and elderly populations.
 
 3.  Summarize key insights for each visualization to support the narrative.
 
