@@ -324,15 +324,101 @@ pacman::p_load(ggstatsplot, tidyverse)
 ## 10.1.2 Importing data
 
 ```{r}
-
-# Load the tidyverse package
 library(tidyverse)
 
-# Import the CSV file
 exam <- read_csv("Data_04/Exam_data.csv")
 
-# Display the data as a tibble
 print(exam)
-
 ```
+
+## 10.1.3 One-sample test: gghistostats() method
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+set.seed(1234)
+
+gghistostats(
+  data = exam,
+  x = ENGLISH,
+  type = "bayes",
+  test.value = 60,
+  xlab = "English scores"
+)
+```
+
+## 10.1.4 Two-sample mean test: ggbetweenstats()
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+ggbetweenstats(
+  data = exam,
+  x = GENDER, 
+  y = MATHS,
+  type = "np",
+  messages = FALSE
+)
+```
+
+## 10.1.5 Oneway ANOVA Test: ggbetweenstats() method
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+ggbetweenstats(
+  data = exam,
+  x = RACE, 
+  y = ENGLISH,
+  type = "p",
+  mean.ci = TRUE, 
+  pairwise.comparisons = TRUE, 
+  pairwise.display = "s",
+  p.adjust.method = "fdr",
+  messages = FALSE
+)
+```
+
+## 10.1.6 Significant Test of Correlation: ggscatterstats()
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+ggscatterstats(
+  data = exam,
+  x = MATHS,
+  y = ENGLISH,
+  marginal = FALSE,
+  )
+```
+
+## 10.1.7 Significant Test of Association (Depedence) : ggbarstats() methods
+
+In the code chunk below, the Maths scores is binned into a 4-class variable by using cut().
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+exam1 <- exam %>% 
+  mutate(MATHS_bins = 
+           cut(MATHS, 
+               breaks = c(0,60,75,85,100))
+)
+```
+
+In this code chunk below ggbarstats() is used to build a visual for Significant Test of Association
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+ggbarstats(exam1, 
+           x = MATHS_bins, 
+           y = GENDER)
+```
+
 

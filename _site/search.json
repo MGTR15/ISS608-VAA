@@ -557,6 +557,41 @@
     "href": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html#importing-data",
     "title": "Hands-on Exercise 4",
     "section": "10.1.2 Importing data",
-    "text": "10.1.2 Importing data\n\n# Load the tidyverse package\nlibrary(tidyverse)\n\n# Import the CSV file\nexam &lt;- read_csv(\"Data_04/Exam_data.csv\")\n\n# Display the data as a tibble\nprint(exam)\n\n# A tibble: 322 × 7\n   ID         CLASS GENDER RACE    ENGLISH MATHS SCIENCE\n   &lt;chr&gt;      &lt;chr&gt; &lt;chr&gt;  &lt;chr&gt;     &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;\n 1 Student321 3I    Male   Malay        21     9      15\n 2 Student305 3I    Female Malay        24    22      16\n 3 Student289 3H    Male   Chinese      26    16      16\n 4 Student227 3F    Male   Chinese      27    77      31\n 5 Student318 3I    Male   Malay        27    11      25\n 6 Student306 3I    Female Malay        31    16      16\n 7 Student313 3I    Male   Chinese      31    21      25\n 8 Student316 3I    Male   Malay        31    18      27\n 9 Student312 3I    Male   Malay        33    19      15\n10 Student297 3H    Male   Indian       34    49      37\n# ℹ 312 more rows"
+    "text": "10.1.2 Importing data\n\nlibrary(tidyverse)\n\nexam &lt;- read_csv(\"Data_04/Exam_data.csv\")\n\nprint(exam)\n\n# A tibble: 322 × 7\n   ID         CLASS GENDER RACE    ENGLISH MATHS SCIENCE\n   &lt;chr&gt;      &lt;chr&gt; &lt;chr&gt;  &lt;chr&gt;     &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;\n 1 Student321 3I    Male   Malay        21     9      15\n 2 Student305 3I    Female Malay        24    22      16\n 3 Student289 3H    Male   Chinese      26    16      16\n 4 Student227 3F    Male   Chinese      27    77      31\n 5 Student318 3I    Male   Malay        27    11      25\n 6 Student306 3I    Female Malay        31    16      16\n 7 Student313 3I    Male   Chinese      31    21      25\n 8 Student316 3I    Male   Malay        31    18      27\n 9 Student312 3I    Male   Malay        33    19      15\n10 Student297 3H    Male   Indian       34    49      37\n# ℹ 312 more rows"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html#one-sample-test-gghistostats-method",
+    "href": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html#one-sample-test-gghistostats-method",
+    "title": "Hands-on Exercise 4",
+    "section": "10.1.3 One-sample test: gghistostats() method",
+    "text": "10.1.3 One-sample test: gghistostats() method\n\n\nShow the code\nset.seed(1234)\n\ngghistostats(\n  data = exam,\n  x = ENGLISH,\n  type = \"bayes\",\n  test.value = 60,\n  xlab = \"English scores\"\n)"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html#two-sample-mean-test-ggbetweenstats",
+    "href": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html#two-sample-mean-test-ggbetweenstats",
+    "title": "Hands-on Exercise 4",
+    "section": "10.1.4 Two-sample mean test: ggbetweenstats()",
+    "text": "10.1.4 Two-sample mean test: ggbetweenstats()\n\n\nShow the code\nggbetweenstats(\n  data = exam,\n  x = GENDER, \n  y = MATHS,\n  type = \"np\",\n  messages = FALSE\n)"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html#oneway-anova-test-ggbetweenstats-method",
+    "href": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html#oneway-anova-test-ggbetweenstats-method",
+    "title": "Hands-on Exercise 4",
+    "section": "10.1.5 Oneway ANOVA Test: ggbetweenstats() method",
+    "text": "10.1.5 Oneway ANOVA Test: ggbetweenstats() method\n\n\nShow the code\nggbetweenstats(\n  data = exam,\n  x = RACE, \n  y = ENGLISH,\n  type = \"p\",\n  mean.ci = TRUE, \n  pairwise.comparisons = TRUE, \n  pairwise.display = \"s\",\n  p.adjust.method = \"fdr\",\n  messages = FALSE\n)"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html#significant-test-of-correlation-ggscatterstats",
+    "href": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html#significant-test-of-correlation-ggscatterstats",
+    "title": "Hands-on Exercise 4",
+    "section": "10.1.6 Significant Test of Correlation: ggscatterstats()",
+    "text": "10.1.6 Significant Test of Correlation: ggscatterstats()\n\n\nShow the code\nggscatterstats(\n  data = exam,\n  x = MATHS,\n  y = ENGLISH,\n  marginal = FALSE,\n  )"
+  },
+  {
+    "objectID": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html#significant-test-of-association-depedence-ggbarstats-methods",
+    "href": "Hands-on_Ex/Hands-on_Ex04/Hands-on_Ex04.html#significant-test-of-association-depedence-ggbarstats-methods",
+    "title": "Hands-on Exercise 4",
+    "section": "10.1.7 Significant Test of Association (Depedence) : ggbarstats() methods",
+    "text": "10.1.7 Significant Test of Association (Depedence) : ggbarstats() methods\nIn the code chunk below, the Maths scores is binned into a 4-class variable by using cut().\n\n\nShow the code\nexam1 &lt;- exam %&gt;% \n  mutate(MATHS_bins = \n           cut(MATHS, \n               breaks = c(0,60,75,85,100))\n)\n\n\nIn this code chunk below ggbarstats() is used to build a visual for Significant Test of Association\n\n\nShow the code\nggbarstats(exam1, \n           x = MATHS_bins, \n           y = GENDER)"
   }
 ]
