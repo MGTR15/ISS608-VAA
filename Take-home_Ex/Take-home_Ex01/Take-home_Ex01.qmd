@@ -2,8 +2,9 @@
 title: "Take-home Exercise 1"
 author: "Marga Thura"
 date: "May 2 2025"
-date-modified: "May 3 2025"
-execute: 
+date-modified: "May 7 2025"
+format: html
+execute:
   eval: true
   echo: true
   warning: false
@@ -566,3 +567,212 @@ Overall, Singapore’s population is aging, with varying needs across regions. P
 [Quarto](https://quarto.org/)
 
 [Fundamentals of Data Visualization](https://clauswilke.com/dataviz/)
+
+# 8 Take Home Exercise 1 (Part 2)
+
+# 8.1 Task
+
+Selecting one submission provided by your classmate, critic three good design principles and three areas for further improvement. With reference to the comment, prepare the makeover version of the data visualisation.
+
+```{r}
+#| echo: false
+
+pacman::p_load(
+  tidyverse, haven, knitr,
+  patchwork, ggthemes, scales,
+  ggridges, ggpubr, gganimate,
+  ggdist, ggtext, ggalt,
+  cowplot, ggnewscale,
+  sf, viridis
+)
+```
+
+```{r}
+#| echo: false
+
+raw_lines <- readLines("TakeHome_01/respopagesex2024.csv", encoding = "UTF-8")
+writeLines(raw_lines, "TakeHome_01/respopagesex2024_clean.csv", useBytes = TRUE)
+```
+
+```{r}
+#| echo: false
+df <- read_csv("TakeHome_01/respopagesex2024_clean.csv",  skip_empty_rows = TRUE)
+```
+
+```{r}
+#| echo: false
+df <- df %>%
+  mutate(
+    Age = suppressWarnings(as.numeric(Age)),
+    Pop = suppressWarnings(as.numeric(Pop))
+  )
+
+df_clean <- df %>%
+  filter(!is.na(Pop) & !is.na(Age))
+show_col_types = FALSE
+```
+
+# 8.2 Class mate original plot
+
+## View Column Names and Adjust Data
+
+```{r}
+colnames(respopagesex2024)
+```
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+df <- tibble(
+  PA = c("Planning Area"),
+  SZ = c("Subzone"),
+  Age = c("Age"),
+  Sex = c("Sex"),
+  Pop = c("Population"),
+  Time = c("Time")
+)
+
+df %>%
+  knitr::kable(caption = "Column Information")
+```
+
+```{r}
+library(dplyr)
+
+df_percent <- respopagesex2024 %>%
+  mutate(
+    Age = as.numeric(Age),
+    AgeGroup = case_when(
+      Age <= 14 ~ "Children",
+      Age >= 15 & Age <= 64 ~ "Adults",
+      Age >= 65 ~ "Seniors",
+      TRUE ~ NA_character_
+    )
+  ) %>%
+  group_by(PA, AgeGroup) %>%
+  summarise(Population = sum(Pop), .groups = "drop") %>%
+  group_by(PA) %>%
+  mutate(
+    Total_Pop = sum(Population),
+    Percent = Population / Total_Pop * 100
+  )
+```
+
+```{r}
+df_summary <- df_clean %>%
+  group_by(PA) %>%
+  summarise(
+    Total_Pop = sum(Pop, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(Total_Pop))
+```
+
+## Plot
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+bottom10_pa <- df_summary %>%
+  slice_min(Total_Pop, n = 10) %>%
+  pull(PA)
+
+df_summary_filtered <- df_summary %>%
+  filter(!PA %in% bottom10_pa)
+
+ggplot(df_summary_filtered, aes(x = reorder(PA, -Total_Pop), y = Total_Pop)) +
+  geom_bar(stat = "identity", color = "black", fill = "lightblue", width = 0.75) +
+  scale_y_continuous(labels = scales::comma, expand = c(0, 0)) +  
+  labs(
+    x = "Planning Area",
+    y = "Total Population",
+    title = "Total Population by Planning Area (2024)"
+  ) +
+  theme_classic(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 55, hjust = 1))
+```
+
+# 8.3 Three Good Design Principles from the Plot
+
+1.  Clear Use of Ordering to Enhance Comparison
+
+-   Reordering planning areas by descending total population makes it easy to compare across areas, aligning with principle of sorting in order for clarity in bar charts.
+
+2.  Strong Axis Labels and Title
+
+-   The chart uses clear, readable labels and a descriptive title ("Total Population by Planning Area (2024)"), fulfilling Wilke’s principle that charts should be self-explanatory without additional context.
+
+-   Fundamentals of Data Visualization - <https://clauswilke.com/dataviz/>
+
+3.  Good Use of Color and Simplicity
+
+-   Light blue fill and black borders provide clear visual contrast without being complex to read.
+
+# 8.4 Three Areas that could be improved
+
+1.  Overcrowded X-Axis Labels
+
+-   The 45°-rotated text is still hard to read due to the large number of planning areas. This decreases clarity. It could improve by switching to a horizontal bar chart, especially for ranked data with long labels.
+
+2.  No Indication of Units on the Y-Axis
+
+-   The y-axis is labeled "Total Population" but doesn’t specify units. Improving it to "Total Population (number of people)" can adds clarity.
+
+3.  Inefficient Use of Vertical Space
+
+-   The chart uses a lot of horizontal space while squeezing the bars vertically. In this case, a horizontal layout (coord_flip) would better fit long categorical labels and allow taller bars for clearer visual impact.
+
+# 8.5 Makeover version
+
+-   Highlighted the Top 3 most populated planning areas
+
+-   Added a subtitle for insight
+
+-   Added population for each area for information
+
+-   Kept a clean layout with horizontal bars
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+library(dplyr)
+library(ggplot2)
+library(scales)
+
+df_highlighted <- df_summary_filtered %>%
+  mutate(Highlight = ifelse(PA %in% c("Tampines", "Bedok", "Sengkang"), "Top 3", "Others"))
+
+ggplot(df_highlighted, aes(
+    x = reorder(PA, Total_Pop),
+    y = Total_Pop,
+    fill = Highlight
+  )) +
+  geom_bar(stat = "identity", color = "black", width = 0.75) +
+  geom_text(  
+    aes(label = comma(Total_Pop)),
+    hjust = -0.1,
+    size = 2
+  ) +
+  scale_fill_manual(values = c("Top 3" = "tomato", "Others" = "lightblue")) +
+  coord_flip() +
+  scale_y_continuous(labels = comma_format(), expand = expansion(mult = c(0, 0.15))) +
+  labs(
+    title = "Total Population by Planning Area (2024)",
+    subtitle = "Tampines, Bedok, and Sengkang have the largest populations",
+    x = "Planning Area",
+    y = "Total Population (number of people)",
+    fill = NULL
+  ) +
+  theme_classic(base_size = 12) +
+  theme(
+    axis.text.y = element_text(size = 6),
+    legend.position = "none"
+  )
+```
+
+# 8.4 Reference
+
+Peng Hsiao Yuan - [*https://lesteronthecouchisss608.netlify.app/take-home_ex/take-home_ex01/take-home_ex01*](https://lesteronthecouchisss608.netlify.app/take-home_ex/take-home_ex01/take-home_ex01)
