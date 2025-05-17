@@ -1,0 +1,16 @@
+---
+title: "Take-Home Exercise 2"
+author: "Marga Thura"
+date: "May 13 2025"
+date-modified: "May 17 2025"
+editor: visual
+format: html
+execute:
+  eval: true
+  echo: true
+  warning: false
+  freeze: true
+---
+
+```{}
+```
