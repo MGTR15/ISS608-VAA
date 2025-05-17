@@ -907,6 +907,6 @@
     "href": "Take-home_Ex/Take-home_Ex02/Take-home_Ex02.html#plot-the-sub-graph",
     "title": "Take-Home Exercise 2",
     "section": "Plot the sub-graph",
-    "text": "Plot the sub-graph"
+    "text": "Plot the sub-graph\n\nggraph(graph_memberof,\n       layout = \"fr\") +\n  geom_edge_link(alpha = 0.5,\n                 colour = \"gray\") +\n  geom_node_point(aes(color = `Node Type`),\n                  size = 1) +\n  geom_node_text(aes(label = name),\n                 repel = TRUE,\n                 size = 2.5) +\n  theme_void()"
   }
 ]

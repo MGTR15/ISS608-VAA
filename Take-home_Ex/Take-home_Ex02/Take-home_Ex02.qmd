@@ -102,6 +102,7 @@ ggraph(graph, layout = "fr") +
                  size = 2.5) +
   theme_void()
 ```
+# Filter edges to only MemberOf
 
 ```{r}
 graph_memberof <- graph %>%
@@ -109,5 +110,41 @@ graph_memberof <- graph %>%
   filter(`Edge Type` == "MemberOf")
 ```
 
+# Extract only connected nodes (used in the edges)
+
+```{r}
+used_nodes_indices <- graph_memberof %>%
+  activate(edges) %>%
+  as_tibble() %>%
+  select(from, to) %>%
+  unlist() %>%
+  unique()
+```
+
+# Keep only those nodes
+
+```{r}
+graph_memberof <- graph_memberof %>%
+  activate(nodes) %>%
+  mutate(row_id = row_number()) %>%
+  filter(row_id %in% used_nodes_indices) %>%
+  select(-row_id)
+```
+
 
 ## Plot the sub-graph
+
+```{r}
+ggraph(graph_memberof,
+       layout = "fr") +
+  geom_edge_link(alpha = 0.5,
+                 colour = "gray") +
+  geom_node_point(aes(color = `Node Type`),
+                  size = 1) +
+  geom_node_text(aes(label = name),
+                 repel = TRUE,
+                 size = 2.5) +
+  theme_void()
+```
+
+
