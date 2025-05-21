@@ -144,6 +144,8 @@ graph_memberof <- graph_memberof %>%
 # Plot the sub-graph
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
 ggraph(graph_memberof,
        layout = "fr") +
   geom_edge_link(alpha = 0.5,
@@ -179,6 +181,9 @@ nodes_tbl %>%
 ## A2. Check Sailor Shift’s song release date sorted chronologically
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
 # 1. Find Sailor Shift's ID
 sailor_id <- nodes_tbl %>%
   filter(name == "Sailor Shift") %>%
@@ -223,6 +228,8 @@ influences <- edges_tbl %>%
 ### Plot influence
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
 influences %>%
   count(`Edge Type`) %>%
   ggplot(aes(x = reorder(`Edge Type`, n), y = n, fill = `Edge Type`)) +
@@ -247,6 +254,8 @@ years
 ### Define influence_types
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
 
 library(dplyr)
 
@@ -287,6 +296,9 @@ perf_map <- edges_tbl %>%
 ### Build yearly_top_influencers_artists
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+#| 
 yearly_top_influencers_artists <-
   edges_tbl %>%
   filter(`Edge Type` %in% influence_types) %>%
@@ -350,6 +362,9 @@ print(auto_weights)
 ### Build weights → weighted_top_by_year_auto
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
 weighted_top_by_year_auto <- edges_tbl %>%
   filter(`Edge Type` %in% influence_types) %>%
   inner_join(sailor_songs_tbl, by = c("source" = "id")) %>%
@@ -377,6 +392,9 @@ The resulting chart below shows the top influencer by year, accounting for both 
 This approach reveals both consistent sources of inspiration and shifts in influence throughout her discography, offering insight into how her sound may have been shaped by key collaborators or predecessors.
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
 library(ggplot2)
 
 ggplot(weighted_top_by_year_auto,
@@ -406,6 +424,9 @@ Next, we extracted all `PerformerOf` relationships involving `Person-type` nodes
 ## B1. Create a clean collaboration data table for all artists who collaborated
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
 library(dplyr)
 library(tidyr)
 
@@ -435,6 +456,9 @@ print(collaborations_named)
 ### Print all artists Sailor has collaborated with
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
 # Step 1: Filter rows where Sailor Shift is involved
 sailor_collaborations_named <- collaborations_named %>%
   filter(from_name == "Sailor Shift" | to_name == "Sailor Shift")
@@ -460,6 +484,9 @@ We defined Sailor’s influence using five edge types: `CoverOf`, `InStyleOf`, `
 We then looked for performers of those influenced songs, filtering by `Person`, `MusicGroup`, or `RecordLabel` node types.
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
 library(dplyr)
 
 # Step 1: Get Sailor Shift's ID
@@ -536,6 +563,9 @@ This intersection revealed the collaborators she also influenced. The result sho
 Sailor Shift didn’t just work with other artists which she also influenced some of them through her music. While she had several collaborators, only a few were directly or indirectly shaped by her style, showing that her impact went beyond teamwork and helped inspire others.
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
 # Step 1: Extract the 3 collaborator names from filtered table
 collaborators <- sailor_collaborations_named %>%
   pull(collaborator_name) %>%
@@ -564,6 +594,9 @@ To explore Sailor Shift’s influence within the Oceanus Folk community, we took
 We identified the Oceanus Folk community as all individuals who contributed to songs tagged with the genre "Oceanus Folk"—including performers, composers, lyricists, and producers. Additionally, we manually added key members of the Ivy Echoes group—Maya Jensen, Lila Hartman, Jade Thompson, and Sophie Ramirez—who co-founded Oceanus Folk alongside Sailor Shift.
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
 library(tidyverse)
 library(stringr)
 
@@ -611,6 +644,9 @@ A focused and full-scale network graph was constructed to visualize this creativ
 
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
 # Step 1: Get all songs the Oceanus Folk community worked on
 oceanus_songs_all_roles <- edges_tbl %>%
   filter(`Edge Type` %in% creative_roles,
@@ -661,6 +697,9 @@ For each influenced collaborator, we recorded:
 This approach allows us to trace the spread of Sailor Shift’s musical impact beyond her direct connections and into the wider music ecosystem surrounding the Oceanus Folk genre.
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
 library(dplyr)
 library(tibble)
 library(igraph)
@@ -792,6 +831,9 @@ head(final_result, 20)
 Sailor Shift’s artistic influence extended well beyond her direct circle of collaborators. Her music indirectly shaped the work of several artists in the Oceanus Folk scene—highlighting her central role as both a founder and a source of inspiration for the genre.
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
 library(tidygraph)
 library(ggraph)
 library(ggforce)
@@ -865,6 +907,9 @@ edges_label_data <- edges_all %>%
 ### Plot Network Graph
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
 ggraph(layout) +
   geom_edge_link(aes(color = type),
                  arrow = arrow(length = unit(3, "mm")),
