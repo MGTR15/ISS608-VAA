@@ -489,64 +489,155 @@ We then looked for performers of those influenced songs, filtering by `Person`, 
 
 library(dplyr)
 
-# Step 1: Get Sailor Shift's ID
-sailor_id <- nodes_tbl %>%
-  filter(name == "Sailor Shift") %>%
+# 1. Sailor Shift’s ID and performed songs
+sailor_id    <- nodes_tbl %>% 
+  filter(name == "Sailor Shift") %>% 
   pull(id)
 
-# Step 2: Get all songs she performed
-sailor_songs <- edges_tbl %>%
-  filter(`Edge Type` == "PerformerOf", source == sailor_id) %>%
-  pull(target)
-
-# Step 3: Define influence edge types
-influence_types <- c("CoverOf", "InStyleOf", "DirectlySamples", "InterpolatesFrom", "LyricalReferenceTo")
-
-# Step 4: Find directly influenced songs (1 hop)
-direct_targets <- edges_tbl %>%
-  filter(`Edge Type` %in% influence_types, source %in% sailor_songs) %>%
-  pull(target)
-
-# Step 5: Find indirectly influenced songs (2 hops)
-indirect_targets <- edges_tbl %>%
-  filter(`Edge Type` %in% influence_types, source %in% direct_targets) %>%
-  pull(target)
-
-# Step 6: Get artists who performed directly influenced songs
-direct_influenced_ids <- edges_tbl %>%
-  filter(`Edge Type` == "PerformerOf", target %in% direct_targets) %>%
-  pull(source) %>%
+sailor_songs <- edges_tbl %>% 
+  filter(`Edge Type` == "PerformerOf", source == sailor_id) %>% 
+  pull(target) %>% 
   unique()
 
-# Step 7: Get artists who performed indirectly influenced songs
-indirect_influenced_ids <- edges_tbl %>%
-  filter(`Edge Type` == "PerformerOf", target %in% indirect_targets) %>%
-  pull(source) %>%
+# 2. Influence edge types
+influence_types <- c(
+  "CoverOf", "InStyleOf", "DirectlySamples",
+  "InterpolatesFrom", "LyricalReferenceTo"
+)
+
+# 3. Direct (1-hop) and indirect (2-hop) influenced song IDs
+direct_targets   <- edges_tbl %>% 
+  filter(`Edge Type` %in% influence_types, source %in% sailor_songs) %>% 
+  pull(target) %>% 
   unique()
 
-# Step 8: Create influence_tbl
+indirect_targets <- edges_tbl %>% 
+  filter(`Edge Type` %in% influence_types, source %in% direct_targets) %>% 
+  pull(target) %>% 
+  setdiff(direct_targets) %>%   # exclude any already in direct_targets
+  unique()
+
+# 4. Performer IDs for those influenced songs
+direct_ids   <- edges_tbl %>% 
+  filter(`Edge Type` == "PerformerOf", target %in% direct_targets) %>% 
+  pull(source) %>% 
+  unique()
+
+indirect_ids <- edges_tbl %>% 
+  filter(`Edge Type` == "PerformerOf", target %in% indirect_targets) %>% 
+  pull(source) %>% 
+  unique()
+
+# 5. Assemble final table
 sailor_influence_tbl <- bind_rows(
-  tibble(id = direct_influenced_ids, influence = "direct"),
-  tibble(id = indirect_influenced_ids, influence = "indirect")
+  tibble(id = direct_ids,   influence = "direct"),
+  tibble(id = indirect_ids, influence = "indirect")
 ) %>%
-  distinct(id, .keep_all = TRUE) %>%
-  inner_join(nodes_tbl, by = "id") %>%
-  filter(`Node Type` %in% c("Person", "MusicGroup", "RecordLabel")) %>%
+  arrange(id, influence) %>%            # ensure direct takes precedence
+  distinct(id, .keep_all = TRUE) %>%   # one row per artist
+  inner_join(nodes_tbl, by = "id") %>% 
+  filter(`Node Type` %in% c("Person", "MusicGroup", "RecordLabel")) %>% 
   select(id, name, type = `Node Type`, influence)
 
-
+# Inspect
+sailor_influence_tbl
 ```
-
-### Sailor Shift's Musical Influence Network (1-hop & 2-hop)
-
-Collaborators of Sailor Shift who were directly or indirectly influenced by her music.
-
-
 
 ### Plot Network Graph
 
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
 
-  
+library(dplyr)
+library(igraph)
+library(visNetwork)
+
+# 1. Prepare node data 
+
+# a) All song IDs: Sailor’s songs + direct + indirect
+all_songs <- c(sailor_songs, direct_targets, indirect_targets) %>% unique()
+
+# b) Song nodes
+song_nodes <- nodes_tbl %>%
+  filter(id %in% all_songs) %>%
+  transmute(
+    id      = as.character(id),
+    label   = name,
+    group   = "Song"
+  )
+
+# c) Artist nodes: Sailor Shift + those in sailor_influence_tbl
+artist_ids <- c(sailor_id, sailor_influence_tbl$id)
+artist_nodes <- nodes_tbl %>%
+  filter(id %in% artist_ids) %>%
+  transmute(
+    id      = as.character(id),
+    label   = name,
+    group   = if_else(id == as.character(sailor_id), 
+                      "Sailor Shift", 
+                      # use the type from sailor_influ
+                      sailor_influence_tbl$type[match(id, as.character(sailor_influence_tbl$id))])
+  )
+
+# d) Combine
+nodes_vis <- bind_rows(song_nodes, artist_nodes) %>%
+  distinct(id, .keep_all = TRUE)
+
+
+# 2. Prepare edge data 
+
+# a) Influence edges (song → song)
+edge_inf <- edges_tbl %>%
+  filter(
+    `Edge Type` %in% influence_types,
+    source %in% all_songs,
+    target %in% all_songs
+  ) %>%
+  transmute(
+    from = as.character(source),
+    to   = as.character(target)
+  )
+
+# b) Performer edges (artist → song)
+edge_perf <- edges_tbl %>%
+  filter(
+    `Edge Type` == "PerformerOf",
+    source %in% artist_ids,
+    target %in% all_songs
+  ) %>%
+  transmute(
+    from = as.character(source),
+    to   = as.character(target)
+  )
+
+# c) Combine
+edges_vis <- bind_rows(edge_inf, edge_perf) %>%
+  distinct(from, to, .keep_all = TRUE)
+
+
+# 3. Plot with visNetwork
+
+visNetwork(nodes_vis, edges_vis, width = "100%", height = "600px") %>%
+  visNodes(
+    font   = list(size = 20),
+    shadow = TRUE
+  ) %>%
+  visEdges(
+    smooth  = TRUE,
+    shadow  = FALSE,
+    arrows  = "to"
+  ) %>%
+  visOptions(
+    highlightNearest  = TRUE,
+    nodesIdSelection  = TRUE
+  ) %>%
+  visLegend(
+    useGroups = TRUE,
+    position  = "right"
+  ) %>%
+  visLayout(randomSeed = 42)
+```
 
 ### Result
 
@@ -636,25 +727,22 @@ print(oceanus_community)
 
 ```
 
-## C2. Mapping Collaborators of the Oceanus Folk Community
+## C2. Mapping collaborators of the Oceanus Folk Community
 
 This step identifies artists, groups, or labels who collaborated with members of the Oceanus Folk community by co-creating the same songs. Collaboration is defined broadly to include performers, composers, lyricists, and producers. Any artist who shares a creative edge to the same song as an Oceanus Folk contributor is considered a collaborator of the Oceanus Folk community.
-
-A focused and full-scale network graph was constructed to visualize this creative ecosystem, highlighting top contributors and their closest collaborators.
-
 
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code"
 
-# Step 1: Get all songs the Oceanus Folk community worked on
+# 1: Get all songs the Oceanus Folk community worked on
 oceanus_songs_all_roles <- edges_tbl %>%
   filter(`Edge Type` %in% creative_roles,
          source %in% oceanus_community$id) %>%
   pull(target) %>%
   unique()
 
-# Step 2: Find all contributors to those songs (excluding Oceanus community themselves)
+# 2: Find all contributors to those songs (excluding Oceanus community themselves)
 collaborator_ids <- edges_tbl %>%
   filter(`Edge Type` %in% creative_roles,
          target %in% oceanus_songs_all_roles,
@@ -662,7 +750,7 @@ collaborator_ids <- edges_tbl %>%
   pull(source) %>%
   unique()
 
-# Step 3: Get node info for these collaborators
+# 3: Get node info for these collaborators
 oceanus_collaborators <- nodes_tbl %>%
   filter(id %in% collaborator_ids,
          `Node Type` %in% c("Person", "MusicGroup", "RecordLabel")) %>%
@@ -672,11 +760,98 @@ oceanus_collaborators <- nodes_tbl %>%
 print(oceanus_collaborators)
 ```
 
+### Focused heatmap of the Top 10 Collaborators vs Top 10 Oceanus Folk Members
 
+```{r heatmap-top10, echo=TRUE}
+#| code-fold: true
+#| code-summary: "Show the code"
+#| fig-width: 12
+#| fig-height: 4
 
+library(dplyr)
+library(tidyr)
+library(forcats)
+library(ggplot2)
 
+# 0. Parameters
+top_n_collabs <- 10
+top_m_members <- 10
 
-## C3.  Tracing Sailor Shift’s Influence Through the Network
+# 1. Ensure ID columns are character
+oceanus_ids   <- as.character(oceanus_community$id)
+collab_ids    <- as.character(collaborator_ids)
+
+# 2. Count shared‐song pairs
+pair_counts <- edges_tbl %>%
+  filter(`Edge Type` %in% creative_roles,
+         source %in% oceanus_ids) %>%
+  transmute(oc_id = as.character(source), song = target) %>%
+  inner_join(
+    edges_tbl %>%
+      filter(`Edge Type` %in% creative_roles,
+             source %in% collab_ids) %>%
+      transmute(collab_id = as.character(source), song = target),
+    by = "song"
+  ) %>%
+  distinct(oc_id, collab_id, song) %>%
+  count(oc_id, collab_id, name = "shared_songs")
+
+# 3. Build heatmap_df with names and complete zeros
+heatmap_df <- pair_counts %>%
+  left_join(
+    oceanus_community %>% transmute(oc_id = as.character(id), oc_name = name),
+    by = "oc_id"
+  ) %>%
+  left_join(
+    oceanus_collaborators %>% transmute(collab_id = as.character(id), collab_name = name),
+    by = "collab_id"
+  ) %>%
+  # fill in zeros for missing combos
+  complete(oc_name, collab_name, fill = list(shared_songs = 0))
+
+# 4. Pick Top N Collaborators
+top_collabs <- heatmap_df %>%
+  group_by(collab_name) %>%
+  summarize(total_shared = sum(shared_songs), .groups = "drop") %>%
+  slice_max(total_shared, n = top_n_collabs) %>%
+  pull(collab_name)
+
+# 5. Subset & pick Top M Members
+hm1 <- heatmap_df %>% filter(collab_name %in% top_collabs)
+
+top_members <- hm1 %>%
+  group_by(oc_name) %>%
+  summarize(total_shared = sum(shared_songs), .groups = "drop") %>%
+  slice_max(total_shared, n = top_m_members) %>%
+  pull(oc_name)
+
+# 6. Build the final small data frame
+hm_small2 <- hm1 %>%
+  filter(oc_name %in% top_members, !is.na(collab_name)) %>%
+  mutate(
+    collab_name = fct_reorder(collab_name, shared_songs, .fun = sum),
+    oc_name     = fct_reorder(oc_name,     shared_songs, .fun = sum)
+  )
+
+# 7. Plot
+ggplot(hm_small2, aes(x = collab_name, y = oc_name, fill = shared_songs)) +
+  geom_tile(color = "grey90") +
+  scale_fill_gradient(low = "white", high = "Red", name = "Shared\nSongs") +
+  labs(
+    x     = sprintf("Top %d Collaborators", top_n_collabs),
+    y     = sprintf("Top %d Oceanus Members", top_m_members),
+    title = "Heatmap of Top Collaborations"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    axis.text.y = element_text(size = 8),
+    panel.grid   = element_blank()
+  )
+
+```
+
+## C3. Tracing Sailor Shift’s Influence Through the Network
 
 In this step, we explore how Sailor Shift’s music has influenced the broader network of artists who have collaborated with the Oceanus Folk community. Specifically, we aim to identify which of these collaborators were directly or indirectly musically influenced by Sailor Shift through her songs.
 
@@ -812,13 +987,13 @@ We identified a subset of Oceanus Folk collaborators whose work was musically in
 
 We produced a summary table and influence network diagram showing:
 
-- The collaborator name
+-   The collaborator name
 
-- Their influenced song
+-   Their influenced song
 
-- The original Sailor Shift song
+-   The original Sailor Shift song
 
-- The number of hops from Sailor’s song to theirs
+-   The number of hops from Sailor’s song to theirs
 
 Songs like “Saltwater Hymn” and “Moon Over the Tide” played a key role in spreading Sailor Shift’s influence to other artists, even through several layers of connection.
 

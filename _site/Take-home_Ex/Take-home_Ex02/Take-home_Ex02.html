@@ -102,6 +102,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-label": "Search"
   }
 }</script>
+<script src="../../site_libs/htmlwidgets-1.6.4/htmlwidgets.js"></script>
+
+<link href="../../site_libs/vis-9.1.0/vis-network.min.css" rel="stylesheet">
+
+<script src="../../site_libs/vis-9.1.0/vis-network.min.js"></script>
+
+<script src="../../site_libs/visNetwork-binding-2.1.2/visNetwork.js"></script>
+
 
 
 <link rel="stylesheet" href="../../styles.css">
@@ -236,7 +244,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </ul></li>
   <li><a href="#b2.-tracing-her-influence" id="toc-b2.-tracing-her-influence" class="nav-link" data-scroll-target="#b2.-tracing-her-influence">B2. Tracing Her Influence</a>
   <ul class="collapse">
-  <li><a href="#sailor-shifts-musical-influence-network-1-hop-2-hop" id="toc-sailor-shifts-musical-influence-network-1-hop-2-hop" class="nav-link" data-scroll-target="#sailor-shifts-musical-influence-network-1-hop-2-hop">Sailor Shift’s Musical Influence Network (1-hop &amp; 2-hop)</a></li>
   <li><a href="#plot-network-graph" id="toc-plot-network-graph" class="nav-link" data-scroll-target="#plot-network-graph">Plot Network Graph</a></li>
   <li><a href="#result" id="toc-result" class="nav-link" data-scroll-target="#result">Result</a></li>
   <li><a href="#key-insight" id="toc-key-insight" class="nav-link" data-scroll-target="#key-insight">Key Insight:</a></li>
@@ -245,7 +252,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#part-c-how-has-she-influenced-collaborators-of-the-broader-oceanus-folk-community" id="toc-part-c-how-has-she-influenced-collaborators-of-the-broader-oceanus-folk-community" class="nav-link" data-scroll-target="#part-c-how-has-she-influenced-collaborators-of-the-broader-oceanus-folk-community">PART C: How has she influenced collaborators of the broader Oceanus Folk community?</a>
   <ul class="collapse">
   <li><a href="#c1.-defining-the-oceanus-folk-community" id="toc-c1.-defining-the-oceanus-folk-community" class="nav-link" data-scroll-target="#c1.-defining-the-oceanus-folk-community">C1. Defining the Oceanus Folk Community</a></li>
-  <li><a href="#c2.-mapping-collaborators-of-the-oceanus-folk-community" id="toc-c2.-mapping-collaborators-of-the-oceanus-folk-community" class="nav-link" data-scroll-target="#c2.-mapping-collaborators-of-the-oceanus-folk-community">C2. Mapping Collaborators of the Oceanus Folk Community</a></li>
+  <li><a href="#c2.-mapping-collaborators-of-the-oceanus-folk-community" id="toc-c2.-mapping-collaborators-of-the-oceanus-folk-community" class="nav-link" data-scroll-target="#c2.-mapping-collaborators-of-the-oceanus-folk-community">C2. Mapping collaborators of the Oceanus Folk Community</a>
+  <ul class="collapse">
+  <li><a href="#focused-heatmap-of-the-top-10-collaborators-vs-top-10-oceanus-folk-members" id="toc-focused-heatmap-of-the-top-10-collaborators-vs-top-10-oceanus-folk-members" class="nav-link" data-scroll-target="#focused-heatmap-of-the-top-10-collaborators-vs-top-10-oceanus-folk-members">Focused heatmap of the Top 10 Collaborators vs Top 10 Oceanus Folk Members</a></li>
+  </ul></li>
   <li><a href="#c3.-tracing-sailor-shifts-influence-through-the-network" id="toc-c3.-tracing-sailor-shifts-influence-through-the-network" class="nav-link" data-scroll-target="#c3.-tracing-sailor-shifts-influence-through-the-network">C3. Tracing Sailor Shift’s Influence Through the Network</a></li>
   <li><a href="#c4.-results" id="toc-c4.-results" class="nav-link" data-scroll-target="#c4.-results">C4. Results</a>
   <ul class="collapse">
@@ -934,58 +944,175 @@ LyricalReferenceTo
 <summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
 <span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 1: Get Sailor Shift's ID</span></span>
-<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>sailor_id <span class="ot">&lt;-</span> nodes_tbl <span class="sc">%&gt;%</span></span>
-<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(name <span class="sc">==</span> <span class="st">"Sailor Shift"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Sailor Shift’s ID and performed songs</span></span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>sailor_id    <span class="ot">&lt;-</span> nodes_tbl <span class="sc">%&gt;%</span> </span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(name <span class="sc">==</span> <span class="st">"Sailor Shift"</span>) <span class="sc">%&gt;%</span> </span>
 <span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(id)</span>
 <span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 2: Get all songs she performed</span></span>
-<span id="cb45-9"><a href="#cb45-9" aria-hidden="true" tabindex="-1"></a>sailor_songs <span class="ot">&lt;-</span> edges_tbl <span class="sc">%&gt;%</span></span>
-<span id="cb45-10"><a href="#cb45-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Edge Type</span><span class="st">`</span> <span class="sc">==</span> <span class="st">"PerformerOf"</span>, source <span class="sc">==</span> sailor_id) <span class="sc">%&gt;%</span></span>
-<span id="cb45-11"><a href="#cb45-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(target)</span>
+<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a>sailor_songs <span class="ot">&lt;-</span> edges_tbl <span class="sc">%&gt;%</span> </span>
+<span id="cb45-9"><a href="#cb45-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Edge Type</span><span class="st">`</span> <span class="sc">==</span> <span class="st">"PerformerOf"</span>, source <span class="sc">==</span> sailor_id) <span class="sc">%&gt;%</span> </span>
+<span id="cb45-10"><a href="#cb45-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(target) <span class="sc">%&gt;%</span> </span>
+<span id="cb45-11"><a href="#cb45-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>()</span>
 <span id="cb45-12"><a href="#cb45-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-13"><a href="#cb45-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 3: Define influence edge types</span></span>
-<span id="cb45-14"><a href="#cb45-14" aria-hidden="true" tabindex="-1"></a>influence_types <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"CoverOf"</span>, <span class="st">"InStyleOf"</span>, <span class="st">"DirectlySamples"</span>, <span class="st">"InterpolatesFrom"</span>, <span class="st">"LyricalReferenceTo"</span>)</span>
-<span id="cb45-15"><a href="#cb45-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-16"><a href="#cb45-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 4: Find directly influenced songs (1 hop)</span></span>
-<span id="cb45-17"><a href="#cb45-17" aria-hidden="true" tabindex="-1"></a>direct_targets <span class="ot">&lt;-</span> edges_tbl <span class="sc">%&gt;%</span></span>
-<span id="cb45-18"><a href="#cb45-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Edge Type</span><span class="st">`</span> <span class="sc">%in%</span> influence_types, source <span class="sc">%in%</span> sailor_songs) <span class="sc">%&gt;%</span></span>
-<span id="cb45-19"><a href="#cb45-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(target)</span>
-<span id="cb45-20"><a href="#cb45-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-21"><a href="#cb45-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 5: Find indirectly influenced songs (2 hops)</span></span>
-<span id="cb45-22"><a href="#cb45-22" aria-hidden="true" tabindex="-1"></a>indirect_targets <span class="ot">&lt;-</span> edges_tbl <span class="sc">%&gt;%</span></span>
-<span id="cb45-23"><a href="#cb45-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Edge Type</span><span class="st">`</span> <span class="sc">%in%</span> influence_types, source <span class="sc">%in%</span> direct_targets) <span class="sc">%&gt;%</span></span>
-<span id="cb45-24"><a href="#cb45-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(target)</span>
-<span id="cb45-25"><a href="#cb45-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-26"><a href="#cb45-26" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 6: Get artists who performed directly influenced songs</span></span>
-<span id="cb45-27"><a href="#cb45-27" aria-hidden="true" tabindex="-1"></a>direct_influenced_ids <span class="ot">&lt;-</span> edges_tbl <span class="sc">%&gt;%</span></span>
-<span id="cb45-28"><a href="#cb45-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Edge Type</span><span class="st">`</span> <span class="sc">==</span> <span class="st">"PerformerOf"</span>, target <span class="sc">%in%</span> direct_targets) <span class="sc">%&gt;%</span></span>
-<span id="cb45-29"><a href="#cb45-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(source) <span class="sc">%&gt;%</span></span>
-<span id="cb45-30"><a href="#cb45-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>()</span>
-<span id="cb45-31"><a href="#cb45-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-32"><a href="#cb45-32" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 7: Get artists who performed indirectly influenced songs</span></span>
-<span id="cb45-33"><a href="#cb45-33" aria-hidden="true" tabindex="-1"></a>indirect_influenced_ids <span class="ot">&lt;-</span> edges_tbl <span class="sc">%&gt;%</span></span>
-<span id="cb45-34"><a href="#cb45-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Edge Type</span><span class="st">`</span> <span class="sc">==</span> <span class="st">"PerformerOf"</span>, target <span class="sc">%in%</span> indirect_targets) <span class="sc">%&gt;%</span></span>
-<span id="cb45-35"><a href="#cb45-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(source) <span class="sc">%&gt;%</span></span>
-<span id="cb45-36"><a href="#cb45-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>()</span>
-<span id="cb45-37"><a href="#cb45-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb45-38"><a href="#cb45-38" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 8: Create influence_tbl</span></span>
-<span id="cb45-39"><a href="#cb45-39" aria-hidden="true" tabindex="-1"></a>sailor_influence_tbl <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
-<span id="cb45-40"><a href="#cb45-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(<span class="at">id =</span> direct_influenced_ids, <span class="at">influence =</span> <span class="st">"direct"</span>),</span>
-<span id="cb45-41"><a href="#cb45-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(<span class="at">id =</span> indirect_influenced_ids, <span class="at">influence =</span> <span class="st">"indirect"</span>)</span>
-<span id="cb45-42"><a href="#cb45-42" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
-<span id="cb45-43"><a href="#cb45-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(id, <span class="at">.keep_all =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb45-44"><a href="#cb45-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(nodes_tbl, <span class="at">by =</span> <span class="st">"id"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb45-45"><a href="#cb45-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Node Type</span><span class="st">`</span> <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Person"</span>, <span class="st">"MusicGroup"</span>, <span class="st">"RecordLabel"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb45-46"><a href="#cb45-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(id, name, <span class="at">type =</span> <span class="st">`</span><span class="at">Node Type</span><span class="st">`</span>, influence)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb45-13"><a href="#cb45-13" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Influence edge types</span></span>
+<span id="cb45-14"><a href="#cb45-14" aria-hidden="true" tabindex="-1"></a>influence_types <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb45-15"><a href="#cb45-15" aria-hidden="true" tabindex="-1"></a>  <span class="st">"CoverOf"</span>, <span class="st">"InStyleOf"</span>, <span class="st">"DirectlySamples"</span>,</span>
+<span id="cb45-16"><a href="#cb45-16" aria-hidden="true" tabindex="-1"></a>  <span class="st">"InterpolatesFrom"</span>, <span class="st">"LyricalReferenceTo"</span></span>
+<span id="cb45-17"><a href="#cb45-17" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb45-18"><a href="#cb45-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-19"><a href="#cb45-19" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Direct (1-hop) and indirect (2-hop) influenced song IDs</span></span>
+<span id="cb45-20"><a href="#cb45-20" aria-hidden="true" tabindex="-1"></a>direct_targets   <span class="ot">&lt;-</span> edges_tbl <span class="sc">%&gt;%</span> </span>
+<span id="cb45-21"><a href="#cb45-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Edge Type</span><span class="st">`</span> <span class="sc">%in%</span> influence_types, source <span class="sc">%in%</span> sailor_songs) <span class="sc">%&gt;%</span> </span>
+<span id="cb45-22"><a href="#cb45-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(target) <span class="sc">%&gt;%</span> </span>
+<span id="cb45-23"><a href="#cb45-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>()</span>
+<span id="cb45-24"><a href="#cb45-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-25"><a href="#cb45-25" aria-hidden="true" tabindex="-1"></a>indirect_targets <span class="ot">&lt;-</span> edges_tbl <span class="sc">%&gt;%</span> </span>
+<span id="cb45-26"><a href="#cb45-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Edge Type</span><span class="st">`</span> <span class="sc">%in%</span> influence_types, source <span class="sc">%in%</span> direct_targets) <span class="sc">%&gt;%</span> </span>
+<span id="cb45-27"><a href="#cb45-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(target) <span class="sc">%&gt;%</span> </span>
+<span id="cb45-28"><a href="#cb45-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">setdiff</span>(direct_targets) <span class="sc">%&gt;%</span>   <span class="co"># exclude any already in direct_targets</span></span>
+<span id="cb45-29"><a href="#cb45-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>()</span>
+<span id="cb45-30"><a href="#cb45-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-31"><a href="#cb45-31" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Performer IDs for those influenced songs</span></span>
+<span id="cb45-32"><a href="#cb45-32" aria-hidden="true" tabindex="-1"></a>direct_ids   <span class="ot">&lt;-</span> edges_tbl <span class="sc">%&gt;%</span> </span>
+<span id="cb45-33"><a href="#cb45-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Edge Type</span><span class="st">`</span> <span class="sc">==</span> <span class="st">"PerformerOf"</span>, target <span class="sc">%in%</span> direct_targets) <span class="sc">%&gt;%</span> </span>
+<span id="cb45-34"><a href="#cb45-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(source) <span class="sc">%&gt;%</span> </span>
+<span id="cb45-35"><a href="#cb45-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>()</span>
+<span id="cb45-36"><a href="#cb45-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-37"><a href="#cb45-37" aria-hidden="true" tabindex="-1"></a>indirect_ids <span class="ot">&lt;-</span> edges_tbl <span class="sc">%&gt;%</span> </span>
+<span id="cb45-38"><a href="#cb45-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Edge Type</span><span class="st">`</span> <span class="sc">==</span> <span class="st">"PerformerOf"</span>, target <span class="sc">%in%</span> indirect_targets) <span class="sc">%&gt;%</span> </span>
+<span id="cb45-39"><a href="#cb45-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(source) <span class="sc">%&gt;%</span> </span>
+<span id="cb45-40"><a href="#cb45-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>()</span>
+<span id="cb45-41"><a href="#cb45-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-42"><a href="#cb45-42" aria-hidden="true" tabindex="-1"></a><span class="co"># 5. Assemble final table</span></span>
+<span id="cb45-43"><a href="#cb45-43" aria-hidden="true" tabindex="-1"></a>sailor_influence_tbl <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(</span>
+<span id="cb45-44"><a href="#cb45-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(<span class="at">id =</span> direct_ids,   <span class="at">influence =</span> <span class="st">"direct"</span>),</span>
+<span id="cb45-45"><a href="#cb45-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(<span class="at">id =</span> indirect_ids, <span class="at">influence =</span> <span class="st">"indirect"</span>)</span>
+<span id="cb45-46"><a href="#cb45-46" aria-hidden="true" tabindex="-1"></a>) <span class="sc">%&gt;%</span></span>
+<span id="cb45-47"><a href="#cb45-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(id, influence) <span class="sc">%&gt;%</span>            <span class="co"># ensure direct takes precedence</span></span>
+<span id="cb45-48"><a href="#cb45-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(id, <span class="at">.keep_all =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span>   <span class="co"># one row per artist</span></span>
+<span id="cb45-49"><a href="#cb45-49" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(nodes_tbl, <span class="at">by =</span> <span class="st">"id"</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb45-50"><a href="#cb45-50" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Node Type</span><span class="st">`</span> <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Person"</span>, <span class="st">"MusicGroup"</span>, <span class="st">"RecordLabel"</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb45-51"><a href="#cb45-51" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(id, name, <span class="at">type =</span> <span class="st">`</span><span class="at">Node Type</span><span class="st">`</span>, influence)</span>
+<span id="cb45-52"><a href="#cb45-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-53"><a href="#cb45-53" aria-hidden="true" tabindex="-1"></a><span class="co"># Inspect</span></span>
+<span id="cb45-54"><a href="#cb45-54" aria-hidden="true" tabindex="-1"></a>sailor_influence_tbl</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 118 × 4
+      id name            type   influence
+   &lt;int&gt; &lt;chr&gt;           &lt;chr&gt;  &lt;chr&gt;    
+ 1    76 Ming Ren        Person direct   
+ 2   334 Christopher Lee Person indirect 
+ 3   455 Yang Peng       Person direct   
+ 4   457 Min Cao         Person direct   
+ 5   551 Szymon Pyć      Person indirect 
+ 6   639 Ming Yan        Person indirect 
+ 7   878 Jing Kang       Person direct   
+ 8   909 Min Tao         Person indirect 
+ 9   934 Jun Zhou        Person direct   
+10  1074 Jing Cui        Person indirect 
+# ℹ 108 more rows</code></pre>
 </div>
-<section id="sailor-shifts-musical-influence-network-1-hop-2-hop" class="level3">
-<h3 class="anchored" data-anchor-id="sailor-shifts-musical-influence-network-1-hop-2-hop">Sailor Shift’s Musical Influence Network (1-hop &amp; 2-hop)</h3>
-<p>Collaborators of Sailor Shift who were directly or indirectly influenced by her music.</p>
-</section>
+</div>
 <section id="plot-network-graph" class="level3">
 <h3 class="anchored" data-anchor-id="plot-network-graph">Plot Network Graph</h3>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(igraph)</span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(visNetwork)</span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Prepare node data </span></span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a><span class="co"># a) All song IDs: Sailor’s songs + direct + indirect</span></span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a>all_songs <span class="ot">&lt;-</span> <span class="fu">c</span>(sailor_songs, direct_targets, indirect_targets) <span class="sc">%&gt;%</span> <span class="fu">unique</span>()</span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a><span class="co"># b) Song nodes</span></span>
+<span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a>song_nodes <span class="ot">&lt;-</span> nodes_tbl <span class="sc">%&gt;%</span></span>
+<span id="cb47-12"><a href="#cb47-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(id <span class="sc">%in%</span> all_songs) <span class="sc">%&gt;%</span></span>
+<span id="cb47-13"><a href="#cb47-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(</span>
+<span id="cb47-14"><a href="#cb47-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">id      =</span> <span class="fu">as.character</span>(id),</span>
+<span id="cb47-15"><a href="#cb47-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">label   =</span> name,</span>
+<span id="cb47-16"><a href="#cb47-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">group   =</span> <span class="st">"Song"</span></span>
+<span id="cb47-17"><a href="#cb47-17" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb47-18"><a href="#cb47-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-19"><a href="#cb47-19" aria-hidden="true" tabindex="-1"></a><span class="co"># c) Artist nodes: Sailor Shift + those in sailor_influence_tbl</span></span>
+<span id="cb47-20"><a href="#cb47-20" aria-hidden="true" tabindex="-1"></a>artist_ids <span class="ot">&lt;-</span> <span class="fu">c</span>(sailor_id, sailor_influence_tbl<span class="sc">$</span>id)</span>
+<span id="cb47-21"><a href="#cb47-21" aria-hidden="true" tabindex="-1"></a>artist_nodes <span class="ot">&lt;-</span> nodes_tbl <span class="sc">%&gt;%</span></span>
+<span id="cb47-22"><a href="#cb47-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(id <span class="sc">%in%</span> artist_ids) <span class="sc">%&gt;%</span></span>
+<span id="cb47-23"><a href="#cb47-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(</span>
+<span id="cb47-24"><a href="#cb47-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">id      =</span> <span class="fu">as.character</span>(id),</span>
+<span id="cb47-25"><a href="#cb47-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">label   =</span> name,</span>
+<span id="cb47-26"><a href="#cb47-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">group   =</span> <span class="fu">if_else</span>(id <span class="sc">==</span> <span class="fu">as.character</span>(sailor_id), </span>
+<span id="cb47-27"><a href="#cb47-27" aria-hidden="true" tabindex="-1"></a>                      <span class="st">"Sailor Shift"</span>, </span>
+<span id="cb47-28"><a href="#cb47-28" aria-hidden="true" tabindex="-1"></a>                      <span class="co"># use the type from sailor_influ</span></span>
+<span id="cb47-29"><a href="#cb47-29" aria-hidden="true" tabindex="-1"></a>                      sailor_influence_tbl<span class="sc">$</span>type[<span class="fu">match</span>(id, <span class="fu">as.character</span>(sailor_influence_tbl<span class="sc">$</span>id))])</span>
+<span id="cb47-30"><a href="#cb47-30" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb47-31"><a href="#cb47-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-32"><a href="#cb47-32" aria-hidden="true" tabindex="-1"></a><span class="co"># d) Combine</span></span>
+<span id="cb47-33"><a href="#cb47-33" aria-hidden="true" tabindex="-1"></a>nodes_vis <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(song_nodes, artist_nodes) <span class="sc">%&gt;%</span></span>
+<span id="cb47-34"><a href="#cb47-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(id, <span class="at">.keep_all =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb47-35"><a href="#cb47-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-36"><a href="#cb47-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-37"><a href="#cb47-37" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Prepare edge data </span></span>
+<span id="cb47-38"><a href="#cb47-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-39"><a href="#cb47-39" aria-hidden="true" tabindex="-1"></a><span class="co"># a) Influence edges (song → song)</span></span>
+<span id="cb47-40"><a href="#cb47-40" aria-hidden="true" tabindex="-1"></a>edge_inf <span class="ot">&lt;-</span> edges_tbl <span class="sc">%&gt;%</span></span>
+<span id="cb47-41"><a href="#cb47-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(</span>
+<span id="cb47-42"><a href="#cb47-42" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Edge Type</span><span class="st">`</span> <span class="sc">%in%</span> influence_types,</span>
+<span id="cb47-43"><a href="#cb47-43" aria-hidden="true" tabindex="-1"></a>    source <span class="sc">%in%</span> all_songs,</span>
+<span id="cb47-44"><a href="#cb47-44" aria-hidden="true" tabindex="-1"></a>    target <span class="sc">%in%</span> all_songs</span>
+<span id="cb47-45"><a href="#cb47-45" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb47-46"><a href="#cb47-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(</span>
+<span id="cb47-47"><a href="#cb47-47" aria-hidden="true" tabindex="-1"></a>    <span class="at">from =</span> <span class="fu">as.character</span>(source),</span>
+<span id="cb47-48"><a href="#cb47-48" aria-hidden="true" tabindex="-1"></a>    <span class="at">to   =</span> <span class="fu">as.character</span>(target)</span>
+<span id="cb47-49"><a href="#cb47-49" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb47-50"><a href="#cb47-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-51"><a href="#cb47-51" aria-hidden="true" tabindex="-1"></a><span class="co"># b) Performer edges (artist → song)</span></span>
+<span id="cb47-52"><a href="#cb47-52" aria-hidden="true" tabindex="-1"></a>edge_perf <span class="ot">&lt;-</span> edges_tbl <span class="sc">%&gt;%</span></span>
+<span id="cb47-53"><a href="#cb47-53" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(</span>
+<span id="cb47-54"><a href="#cb47-54" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">Edge Type</span><span class="st">`</span> <span class="sc">==</span> <span class="st">"PerformerOf"</span>,</span>
+<span id="cb47-55"><a href="#cb47-55" aria-hidden="true" tabindex="-1"></a>    source <span class="sc">%in%</span> artist_ids,</span>
+<span id="cb47-56"><a href="#cb47-56" aria-hidden="true" tabindex="-1"></a>    target <span class="sc">%in%</span> all_songs</span>
+<span id="cb47-57"><a href="#cb47-57" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb47-58"><a href="#cb47-58" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(</span>
+<span id="cb47-59"><a href="#cb47-59" aria-hidden="true" tabindex="-1"></a>    <span class="at">from =</span> <span class="fu">as.character</span>(source),</span>
+<span id="cb47-60"><a href="#cb47-60" aria-hidden="true" tabindex="-1"></a>    <span class="at">to   =</span> <span class="fu">as.character</span>(target)</span>
+<span id="cb47-61"><a href="#cb47-61" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb47-62"><a href="#cb47-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-63"><a href="#cb47-63" aria-hidden="true" tabindex="-1"></a><span class="co"># c) Combine</span></span>
+<span id="cb47-64"><a href="#cb47-64" aria-hidden="true" tabindex="-1"></a>edges_vis <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(edge_inf, edge_perf) <span class="sc">%&gt;%</span></span>
+<span id="cb47-65"><a href="#cb47-65" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(from, to, <span class="at">.keep_all =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb47-66"><a href="#cb47-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-67"><a href="#cb47-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-68"><a href="#cb47-68" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Plot with visNetwork</span></span>
+<span id="cb47-69"><a href="#cb47-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-70"><a href="#cb47-70" aria-hidden="true" tabindex="-1"></a><span class="fu">visNetwork</span>(nodes_vis, edges_vis, <span class="at">width =</span> <span class="st">"100%"</span>, <span class="at">height =</span> <span class="st">"600px"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb47-71"><a href="#cb47-71" aria-hidden="true" tabindex="-1"></a>  <span class="fu">visNodes</span>(</span>
+<span id="cb47-72"><a href="#cb47-72" aria-hidden="true" tabindex="-1"></a>    <span class="at">font   =</span> <span class="fu">list</span>(<span class="at">size =</span> <span class="dv">20</span>),</span>
+<span id="cb47-73"><a href="#cb47-73" aria-hidden="true" tabindex="-1"></a>    <span class="at">shadow =</span> <span class="cn">TRUE</span></span>
+<span id="cb47-74"><a href="#cb47-74" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb47-75"><a href="#cb47-75" aria-hidden="true" tabindex="-1"></a>  <span class="fu">visEdges</span>(</span>
+<span id="cb47-76"><a href="#cb47-76" aria-hidden="true" tabindex="-1"></a>    <span class="at">smooth  =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb47-77"><a href="#cb47-77" aria-hidden="true" tabindex="-1"></a>    <span class="at">shadow  =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb47-78"><a href="#cb47-78" aria-hidden="true" tabindex="-1"></a>    <span class="at">arrows  =</span> <span class="st">"to"</span></span>
+<span id="cb47-79"><a href="#cb47-79" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb47-80"><a href="#cb47-80" aria-hidden="true" tabindex="-1"></a>  <span class="fu">visOptions</span>(</span>
+<span id="cb47-81"><a href="#cb47-81" aria-hidden="true" tabindex="-1"></a>    <span class="at">highlightNearest  =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb47-82"><a href="#cb47-82" aria-hidden="true" tabindex="-1"></a>    <span class="at">nodesIdSelection  =</span> <span class="cn">TRUE</span></span>
+<span id="cb47-83"><a href="#cb47-83" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb47-84"><a href="#cb47-84" aria-hidden="true" tabindex="-1"></a>  <span class="fu">visLegend</span>(</span>
+<span id="cb47-85"><a href="#cb47-85" aria-hidden="true" tabindex="-1"></a>    <span class="at">useGroups =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb47-86"><a href="#cb47-86" aria-hidden="true" tabindex="-1"></a>    <span class="at">position  =</span> <span class="st">"right"</span></span>
+<span id="cb47-87"><a href="#cb47-87" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb47-88"><a href="#cb47-88" aria-hidden="true" tabindex="-1"></a>  <span class="fu">visLayout</span>(<span class="at">randomSeed =</span> <span class="dv">42</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div id="htmlwidget-aa2b0d12e721497a8a5d" style="width:100%;height:600px;" class="visNetwork html-widget"></div>
+<script type="application/json" data-for="htmlwidget-aa2b0d12e721497a8a5d">{"x":{"nodes":{"id":["550","636","876","1841","1857","2333","2704","2927","3349","3433","3881","3986","4413","5574","6177","6592","7778","8207","8445","9096","9772","9848","10016","10534","10903","11254","11352","11368","12237","12475","12685","12865","13014","13484","13589","13654","14658","14933","14965","15622","15855","16035","16312","16400","16528","16702","17272","17273","17274","17275","17276","17277","17278","17279","17280","17281","17282","17283","17284","17285","17286","17287","17288","17289","17290","17291","17292","17293","17294","17350","17356","17410","76","334","455","457","551","639","878","909","934","1074","1227","1251","1276","1294","1472","1474","1815","1816","1842","1843","1858","2101","2334","2400","2705","2706","2707","2850","3435","3437","3760","3761","3763","3882","3883","3987","3988","3989","3990","5213","5459","5575","5858","5861","5863","5865","6178","6179","6316","6317","6593","7779","7780","7781","8208","8447","8880","8883","8884","9097","9098","9099","9231","10018","10019","10020","10021","10022","10696","10697","10905","10906","10907","10908","11255","11353","12238","12239","12240","12241","12476","12477","12592","12686","12687","12688","12770","12771","12772","12773","12774","13015","13016","13017","13018","13485","13655","13656","14934","14935","14936","14937","14938","14966","14967","14968","15224","15623","15624","15625","15626","15627","15628","15629","15856","16031","16401","16703","17255"],"label":["Sleepless Without You","Oh, Steven","Bold Without Apology","Ripples and Whispers","Melancholy's Strings","Canvas of Renaissance Dreams","Theatrical Tempest","Sacred Invocation","Pulse Zero","Tonto's Whisper","Susurros de Pasión","Altitude of Mistakes","Reboot: Pathways Ahead","Our Inevitable Path","Shadows Before Nightfall","When the Bar Lights Go Up","Coastal Convergence","Echoes of Forgotten Light","Currents of Ancient Mariners","Grip and Grace","Whispers of the Wooden Wind","Partisan's Lament","Dreamscape of Judgment","Twelve Bells of Augsburg","Parallel Memories","Divergent Memories","Whispers of the Sussex Shoreline","Forced Feast","Provence Aria","When the Music Fades","Coastal Whispers of Biscay","Festive Footsteps","Exoskeleton Dissolve","Ballot Box Rodent","Silent Steps in the Forest's Embrace","Blueprints of Hope","Addicted to Your Heartache","The Crown We Wear","Honeymoon Whispers","Whispers of Finality","Sacred Fragments","Divided We Stand","Harvest Dance at Ler Valley","Aquatic Rebirth (1983)","Veins of Hesitation","Shift of Mercy","Tidal Pop Waves","Salty Dreams","The Current & The Chord","Coral Beats","Tides & Ballads","Oceanbound","Echoes of the Deep","High Tide Heartbeat","Electric Eel Love","Sun-Drenched Daydream","Chord of the Deep","Heart of the Habitat","Reef Rhythm","Driftwood Lullaby","Saltwater Hymn","Moon Over the Tide","Into the Current","Barnacle Heart","Fog & Fiddle","The Fisherman's Prayer","Stormsong","Salt in My Veins","The Last Mariner","Tidesworn Ballads","Submerged Sonatas","Seashell Serenade","Ming Ren","Christopher Lee","Yang Peng","Min Cao","Szymon Pyć","Ming Yan","Jing Kang","Min Tao","Jun Zhou","Jing Cui","Jun Xia","Eugenia Mitschke","Yong Dong","Urszula Stochmal","Donald Choi","Tonya Brown","Konrad Goss","Kornel Preś","Guiying Lu","Chao Tan","Li Lu","Rebekka Lehmann","Karol Klęczar","Yan Tang","Jeremiah Love","Zachary Francis","Robert Woods","Min Fu","Lei Long","Qiang Peng","Min Long","Gang Shao","Qiang Yuan","Juan Zhou","Yang Zhao","Xiulan Fang","Qiang Liu","Jun Qiao","Ming Huang","Samantha Bullock","Tao Jin","Shannon Harvey","Donald Medina","Lisa Hofmann","Joshua Orozco","Christine Ward","Yang Long","Xiulan Xue","Dennis Lee","Bradley Hayes","Lori Massey","José Berger","Justus Hornig","Henny Caspar","Igor Dyś","Amber Gibson","Tao Gao","Jun Xu","Chao Qiao","Tao Ye","Yong Guo","Juan Duan","Brett Brown","Trevor Bass","Xiuying Du","Xia Yuan","Sandra Burke","Yan Li","David Moore","Amanda Brock","Tao Wen","Guiying Ren","Lei Shi","Wei Liang","Joshua Taylor","Debra Anderson","Lei Fu","Yan Dai","Daniel Mccormick","Lei Jin","Tadeusz Majorek","Jacek Gorol","Clémence Vincent","James Medina","Matthew Best","Linda Burns","Daniel Lee","Christopher Reese","Leon Hutchinson","Bobby Tucker","Melanie Bautista","David Reese","Ryan Dunlap","Elmo Calbo","Amico Luciani","Qiang Yuan","Leon Misiurek","Gustaw Reich","Miss Jennifer Williams","William Robinson","Judy Yang","Joanna Avery","Molly Gonzalez","Eric Bailey","Inès Lebreton","Andrew Green","Juan Shi","Lisa Evans","Brittany Meyers","Kristina Willis","Corey Moody","Peter Huff","Thomas Kelly","Susan Richardson","Ming Zhou","Simone Säuberlich","Steven Goodman","Stacy Hudson","Sailor Shift"],"group":["Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Song","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Person","Sailor Shift"]},"edges":{"from":["876","876","2333","2333","3349","3433","3881","3986","5574","8207","8207","8207","9096","9848","9848","10534","10534","10903","10903","10903","10903","10903","11254","11368","12475","12685","13484","13589","13589","13654","14658","14658","14658","14658","14658","14658","14933","16312","16528","16528","17273","17273","17275","17275","17277","17277","17279","17280","17280","17285","17286","17287","17287","17289","17290","17290","17292","17292","17350","76","334","455","457","551","551","551","639","878","909","934","1074","1227","1251","1276","1276","1294","1294","1294","1294","1294","1294","1294","1294","1472","1474","1815","1815","1816","1842","1843","1858","1858","2101","2334","2400","2705","2705","2706","2706","2707","2850","3435","3437","3760","3761","3763","3882","3883","3987","3988","3988","3989","3990","5213","5213","5213","5459","5575","5858","5861","5863","5865","6178","6179","6316","6317","6593","7779","7780","7781","8208","8447","8880","8883","8884","9097","9098","9099","9231","10018","10019","10020","10021","10022","10696","10697","10905","10906","10907","10908","11255","11353","12238","12239","12240","12241","12476","12477","12592","12686","12687","12688","12770","12771","12772","12773","12774","13015","13016","13017","13018","13485","13655","13656","14934","14935","14936","14937","14938","14966","14967","14968","15224","15623","15624","15625","15626","15627","15628","15629","15856","16031","16401","16703","17255","17255","17255","17255","17255","17255","17255","17255","17255","17255","17255","17255","17255","17255","17255","17255","17255","17255","17255","17255","17255","17255","17255","17255","17255","17255"],"to":["1857","13484","9772","12475","9772","1841","636","6177","4413","2927","550","16528","1841","11352","8445","16312","2704","9096","12865","3433","16400","1841","15622","9772","9772","11352","1857","16702","16035","9772","12475","11368","2333","9772","13654","3349","14965","7778","2927","550","3881","9848","16312","15855","876","3986","14658","14933","10534","8207","10903","13589","11254","5574","12685","12237","13014","6592","10016","12237","11352","15855","15855","550","16528","2927","636","876","1841","3881","6177","12865","8445","3986","6177","14658","2333","2927","3349","9772","11368","12475","13654","7778","7778","3349","11368","3349","1841","1841","1857","13484","4413","12475","6177","2704","10534","2704","10534","10534","15622","3433","3433","3881","3881","3881","3881","3881","3986","3986","6177","3986","3986","9848","11352","16035","6177","5574","16400","16400","16400","16400","6177","6177","8445","8445","6592","7778","7778","7778","8207","8445","13589","9096","9096","9096","9096","9096","15622","10016","10016","10016","10016","10016","12865","12865","10903","10903","10903","10903","11254","11352","12237","12237","12237","12237","12475","12475","14965","12685","12685","12685","14965","14965","14965","14965","14965","13014","13014","13014","13014","13484","13654","13654","14933","14933","14933","14933","14933","14965","14965","14965","15855","15622","15622","15622","15622","15622","15622","15622","15855","16312","16400","16702","17272","17273","17274","17275","17276","17277","17278","17279","17280","17281","17282","17283","17284","17285","17286","17287","17288","17289","17290","17291","17292","17293","17294","17350","17356","17410"]},"nodesToDataframe":true,"edgesToDataframe":true,"options":{"width":"100%","height":"100%","nodes":{"shape":"dot","font":{"size":20},"shadow":true},"manipulation":{"enabled":false},"edges":{"arrows":"to","smooth":true,"shadow":false},"layout":{"randomSeed":42}},"groups":["Song","Person","Sailor Shift"],"width":"100%","height":"600px","idselection":{"enabled":true,"style":"width: 150px; height: 26px","useLabels":true,"main":"Select by id"},"byselection":{"enabled":false,"style":"width: 150px; height: 26px","multiple":false,"hideColor":"rgba(200,200,200,0.5)","highlight":false},"main":null,"submain":null,"footer":null,"background":"rgba(0, 0, 0, 0)","highlight":{"enabled":true,"hoverNearest":false,"degree":1,"algorithm":"all","hideColor":"rgba(200,200,200,0.5)","labelOnly":true},"collapse":{"enabled":false,"fit":false,"resetHighlight":true,"clusterOptions":null,"keepCoord":true,"labelSuffix":"(cluster)"},"legend":{"width":0.2,"useGroups":true,"position":"right","ncol":1,"stepX":100,"stepY":100,"zoom":true}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
 </section>
 <section id="result" class="level3">
 <h3 class="anchored" data-anchor-id="result">Result</h3>
@@ -1002,23 +1129,23 @@ LyricalReferenceTo
 <div class="cell">
 <details class="code-fold">
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 1: Extract the 3 collaborator names from filtered table</span></span>
-<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>collaborators <span class="ot">&lt;-</span> sailor_collaborations_named <span class="sc">%&gt;%</span></span>
-<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(collaborator_name) <span class="sc">%&gt;%</span></span>
-<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>()</span>
-<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 2: Get their IDs from nodes_tbl</span></span>
-<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>collaborator_ids <span class="ot">&lt;-</span> nodes_tbl <span class="sc">%&gt;%</span></span>
-<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(name <span class="sc">%in%</span> collaborators) <span class="sc">%&gt;%</span></span>
-<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(id, name)</span>
-<span id="cb46-10"><a href="#cb46-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-11"><a href="#cb46-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 3: Check which appear in sailor_influence_tbl</span></span>
-<span id="cb46-12"><a href="#cb46-12" aria-hidden="true" tabindex="-1"></a>collab_influence_check <span class="ot">&lt;-</span> collaborator_ids <span class="sc">%&gt;%</span></span>
-<span id="cb46-13"><a href="#cb46-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(sailor_influence_tbl, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"name"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb46-14"><a href="#cb46-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">influenced =</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(influence), <span class="st">"No"</span>, <span class="fu">paste</span>(<span class="st">"Yes -"</span>, influence))) <span class="sc">%&gt;%</span></span>
-<span id="cb46-15"><a href="#cb46-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(id, name, influenced)</span>
-<span id="cb46-16"><a href="#cb46-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb46-17"><a href="#cb46-17" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(collab_influence_check)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 1: Extract the 3 collaborator names from filtered table</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>collaborators <span class="ot">&lt;-</span> sailor_collaborations_named <span class="sc">%&gt;%</span></span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(collaborator_name) <span class="sc">%&gt;%</span></span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>()</span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 2: Get their IDs from nodes_tbl</span></span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>collaborator_ids <span class="ot">&lt;-</span> nodes_tbl <span class="sc">%&gt;%</span></span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(name <span class="sc">%in%</span> collaborators) <span class="sc">%&gt;%</span></span>
+<span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(id, name)</span>
+<span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 3: Check which appear in sailor_influence_tbl</span></span>
+<span id="cb48-12"><a href="#cb48-12" aria-hidden="true" tabindex="-1"></a>collab_influence_check <span class="ot">&lt;-</span> collaborator_ids <span class="sc">%&gt;%</span></span>
+<span id="cb48-13"><a href="#cb48-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(sailor_influence_tbl, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"id"</span>, <span class="st">"name"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb48-14"><a href="#cb48-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">influenced =</span> <span class="fu">ifelse</span>(<span class="fu">is.na</span>(influence), <span class="st">"No"</span>, <span class="fu">paste</span>(<span class="st">"Yes -"</span>, influence))) <span class="sc">%&gt;%</span></span>
+<span id="cb48-15"><a href="#cb48-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(id, name, influenced)</span>
+<span id="cb48-16"><a href="#cb48-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-17"><a href="#cb48-17" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(collab_influence_check)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 3 × 3
@@ -1041,42 +1168,42 @@ LyricalReferenceTo
 <div class="cell">
 <details class="code-fold">
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stringr)</span>
-<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 1: Identify all songs tagged as "Oceanus Folk"</span></span>
-<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>oceanus_songs <span class="ot">&lt;-</span> nodes_tbl <span class="sc">%&gt;%</span></span>
-<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">str_detect</span>(genre, <span class="st">"Oceanus Folk"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(id)</span>
-<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 2: Define creative roles</span></span>
-<span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a>creative_roles <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"PerformerOf"</span>, <span class="st">"ComposerOf"</span>, <span class="st">"LyricistOf"</span>, <span class="st">"ProducerOf"</span>)</span>
-<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-12"><a href="#cb48-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 3: Get contributors to Oceanus Folk songs via creative roles</span></span>
-<span id="cb48-13"><a href="#cb48-13" aria-hidden="true" tabindex="-1"></a>oceanus_contributor_ids <span class="ot">&lt;-</span> edges_tbl <span class="sc">%&gt;%</span></span>
-<span id="cb48-14"><a href="#cb48-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Edge Type</span><span class="st">`</span> <span class="sc">%in%</span> creative_roles, target <span class="sc">%in%</span> oceanus_songs) <span class="sc">%&gt;%</span></span>
-<span id="cb48-15"><a href="#cb48-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(source) <span class="sc">%&gt;%</span></span>
-<span id="cb48-16"><a href="#cb48-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>()</span>
-<span id="cb48-17"><a href="#cb48-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-18"><a href="#cb48-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 4: Manually define Ivy Echoes members (since group node is missing)</span></span>
-<span id="cb48-19"><a href="#cb48-19" aria-hidden="true" tabindex="-1"></a>ivy_echoes_members <span class="ot">&lt;-</span> nodes_tbl <span class="sc">%&gt;%</span></span>
-<span id="cb48-20"><a href="#cb48-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(name <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Maya Jensen"</span>, <span class="st">"Lila Hartman"</span>, <span class="st">"Jade Thompson"</span>, <span class="st">"Sophie Ramirez"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb48-21"><a href="#cb48-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(id)</span>
-<span id="cb48-22"><a href="#cb48-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-23"><a href="#cb48-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 5: Combine all unique contributors</span></span>
-<span id="cb48-24"><a href="#cb48-24" aria-hidden="true" tabindex="-1"></a>oceanus_community_ids <span class="ot">&lt;-</span> <span class="fu">unique</span>(<span class="fu">c</span>(</span>
-<span id="cb48-25"><a href="#cb48-25" aria-hidden="true" tabindex="-1"></a>  oceanus_contributor_ids,</span>
-<span id="cb48-26"><a href="#cb48-26" aria-hidden="true" tabindex="-1"></a>  ivy_echoes_members</span>
-<span id="cb48-27"><a href="#cb48-27" aria-hidden="true" tabindex="-1"></a>))</span>
-<span id="cb48-28"><a href="#cb48-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-29"><a href="#cb48-29" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 6: Filter to only relevant node types</span></span>
-<span id="cb48-30"><a href="#cb48-30" aria-hidden="true" tabindex="-1"></a>oceanus_community <span class="ot">&lt;-</span> nodes_tbl <span class="sc">%&gt;%</span></span>
-<span id="cb48-31"><a href="#cb48-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(id <span class="sc">%in%</span> oceanus_community_ids,</span>
-<span id="cb48-32"><a href="#cb48-32" aria-hidden="true" tabindex="-1"></a>         <span class="st">`</span><span class="at">Node Type</span><span class="st">`</span> <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Person"</span>, <span class="st">"MusicGroup"</span>, <span class="st">"RecordLabel"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb48-33"><a href="#cb48-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(id, name, <span class="at">type =</span> <span class="st">`</span><span class="at">Node Type</span><span class="st">`</span>)</span>
-<span id="cb48-34"><a href="#cb48-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb48-35"><a href="#cb48-35" aria-hidden="true" tabindex="-1"></a><span class="co"># View the final Oceanus Folk community</span></span>
-<span id="cb48-36"><a href="#cb48-36" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(oceanus_community)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stringr)</span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 1: Identify all songs tagged as "Oceanus Folk"</span></span>
+<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a>oceanus_songs <span class="ot">&lt;-</span> nodes_tbl <span class="sc">%&gt;%</span></span>
+<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">str_detect</span>(genre, <span class="st">"Oceanus Folk"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb50-7"><a href="#cb50-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(id)</span>
+<span id="cb50-8"><a href="#cb50-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-9"><a href="#cb50-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 2: Define creative roles</span></span>
+<span id="cb50-10"><a href="#cb50-10" aria-hidden="true" tabindex="-1"></a>creative_roles <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"PerformerOf"</span>, <span class="st">"ComposerOf"</span>, <span class="st">"LyricistOf"</span>, <span class="st">"ProducerOf"</span>)</span>
+<span id="cb50-11"><a href="#cb50-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-12"><a href="#cb50-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 3: Get contributors to Oceanus Folk songs via creative roles</span></span>
+<span id="cb50-13"><a href="#cb50-13" aria-hidden="true" tabindex="-1"></a>oceanus_contributor_ids <span class="ot">&lt;-</span> edges_tbl <span class="sc">%&gt;%</span></span>
+<span id="cb50-14"><a href="#cb50-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Edge Type</span><span class="st">`</span> <span class="sc">%in%</span> creative_roles, target <span class="sc">%in%</span> oceanus_songs) <span class="sc">%&gt;%</span></span>
+<span id="cb50-15"><a href="#cb50-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(source) <span class="sc">%&gt;%</span></span>
+<span id="cb50-16"><a href="#cb50-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>()</span>
+<span id="cb50-17"><a href="#cb50-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-18"><a href="#cb50-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 4: Manually define Ivy Echoes members (since group node is missing)</span></span>
+<span id="cb50-19"><a href="#cb50-19" aria-hidden="true" tabindex="-1"></a>ivy_echoes_members <span class="ot">&lt;-</span> nodes_tbl <span class="sc">%&gt;%</span></span>
+<span id="cb50-20"><a href="#cb50-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(name <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Maya Jensen"</span>, <span class="st">"Lila Hartman"</span>, <span class="st">"Jade Thompson"</span>, <span class="st">"Sophie Ramirez"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb50-21"><a href="#cb50-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(id)</span>
+<span id="cb50-22"><a href="#cb50-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-23"><a href="#cb50-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 5: Combine all unique contributors</span></span>
+<span id="cb50-24"><a href="#cb50-24" aria-hidden="true" tabindex="-1"></a>oceanus_community_ids <span class="ot">&lt;-</span> <span class="fu">unique</span>(<span class="fu">c</span>(</span>
+<span id="cb50-25"><a href="#cb50-25" aria-hidden="true" tabindex="-1"></a>  oceanus_contributor_ids,</span>
+<span id="cb50-26"><a href="#cb50-26" aria-hidden="true" tabindex="-1"></a>  ivy_echoes_members</span>
+<span id="cb50-27"><a href="#cb50-27" aria-hidden="true" tabindex="-1"></a>))</span>
+<span id="cb50-28"><a href="#cb50-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-29"><a href="#cb50-29" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 6: Filter to only relevant node types</span></span>
+<span id="cb50-30"><a href="#cb50-30" aria-hidden="true" tabindex="-1"></a>oceanus_community <span class="ot">&lt;-</span> nodes_tbl <span class="sc">%&gt;%</span></span>
+<span id="cb50-31"><a href="#cb50-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(id <span class="sc">%in%</span> oceanus_community_ids,</span>
+<span id="cb50-32"><a href="#cb50-32" aria-hidden="true" tabindex="-1"></a>         <span class="st">`</span><span class="at">Node Type</span><span class="st">`</span> <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Person"</span>, <span class="st">"MusicGroup"</span>, <span class="st">"RecordLabel"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb50-33"><a href="#cb50-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(id, name, <span class="at">type =</span> <span class="st">`</span><span class="at">Node Type</span><span class="st">`</span>)</span>
+<span id="cb50-34"><a href="#cb50-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-35"><a href="#cb50-35" aria-hidden="true" tabindex="-1"></a><span class="co"># View the final Oceanus Folk community</span></span>
+<span id="cb50-36"><a href="#cb50-36" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(oceanus_community)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 732 × 3
@@ -1097,35 +1224,34 @@ LyricalReferenceTo
 </div>
 </section>
 <section id="c2.-mapping-collaborators-of-the-oceanus-folk-community" class="level2">
-<h2 class="anchored" data-anchor-id="c2.-mapping-collaborators-of-the-oceanus-folk-community">C2. Mapping Collaborators of the Oceanus Folk Community</h2>
+<h2 class="anchored" data-anchor-id="c2.-mapping-collaborators-of-the-oceanus-folk-community">C2. Mapping collaborators of the Oceanus Folk Community</h2>
 <p>This step identifies artists, groups, or labels who collaborated with members of the Oceanus Folk community by co-creating the same songs. Collaboration is defined broadly to include performers, composers, lyricists, and producers. Any artist who shares a creative edge to the same song as an Oceanus Folk contributor is considered a collaborator of the Oceanus Folk community.</p>
-<p>A focused and full-scale network graph was constructed to visualize this creative ecosystem, highlighting top contributors and their closest collaborators.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 1: Get all songs the Oceanus Folk community worked on</span></span>
-<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>oceanus_songs_all_roles <span class="ot">&lt;-</span> edges_tbl <span class="sc">%&gt;%</span></span>
-<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Edge Type</span><span class="st">`</span> <span class="sc">%in%</span> creative_roles,</span>
-<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a>         source <span class="sc">%in%</span> oceanus_community<span class="sc">$</span>id) <span class="sc">%&gt;%</span></span>
-<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(target) <span class="sc">%&gt;%</span></span>
-<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>()</span>
-<span id="cb50-7"><a href="#cb50-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-8"><a href="#cb50-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 2: Find all contributors to those songs (excluding Oceanus community themselves)</span></span>
-<span id="cb50-9"><a href="#cb50-9" aria-hidden="true" tabindex="-1"></a>collaborator_ids <span class="ot">&lt;-</span> edges_tbl <span class="sc">%&gt;%</span></span>
-<span id="cb50-10"><a href="#cb50-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Edge Type</span><span class="st">`</span> <span class="sc">%in%</span> creative_roles,</span>
-<span id="cb50-11"><a href="#cb50-11" aria-hidden="true" tabindex="-1"></a>         target <span class="sc">%in%</span> oceanus_songs_all_roles,</span>
-<span id="cb50-12"><a href="#cb50-12" aria-hidden="true" tabindex="-1"></a>         <span class="sc">!</span>source <span class="sc">%in%</span> oceanus_community<span class="sc">$</span>id) <span class="sc">%&gt;%</span></span>
-<span id="cb50-13"><a href="#cb50-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(source) <span class="sc">%&gt;%</span></span>
-<span id="cb50-14"><a href="#cb50-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>()</span>
-<span id="cb50-15"><a href="#cb50-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-16"><a href="#cb50-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 3: Get node info for these collaborators</span></span>
-<span id="cb50-17"><a href="#cb50-17" aria-hidden="true" tabindex="-1"></a>oceanus_collaborators <span class="ot">&lt;-</span> nodes_tbl <span class="sc">%&gt;%</span></span>
-<span id="cb50-18"><a href="#cb50-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(id <span class="sc">%in%</span> collaborator_ids,</span>
-<span id="cb50-19"><a href="#cb50-19" aria-hidden="true" tabindex="-1"></a>         <span class="st">`</span><span class="at">Node Type</span><span class="st">`</span> <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Person"</span>, <span class="st">"MusicGroup"</span>, <span class="st">"RecordLabel"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb50-20"><a href="#cb50-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(id, name, <span class="at">type =</span> <span class="st">`</span><span class="at">Node Type</span><span class="st">`</span>)</span>
-<span id="cb50-21"><a href="#cb50-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb50-22"><a href="#cb50-22" aria-hidden="true" tabindex="-1"></a><span class="co"># View result</span></span>
-<span id="cb50-23"><a href="#cb50-23" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(oceanus_collaborators)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1: Get all songs the Oceanus Folk community worked on</span></span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>oceanus_songs_all_roles <span class="ot">&lt;-</span> edges_tbl <span class="sc">%&gt;%</span></span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Edge Type</span><span class="st">`</span> <span class="sc">%in%</span> creative_roles,</span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>         source <span class="sc">%in%</span> oceanus_community<span class="sc">$</span>id) <span class="sc">%&gt;%</span></span>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(target) <span class="sc">%&gt;%</span></span>
+<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>()</span>
+<span id="cb52-7"><a href="#cb52-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-8"><a href="#cb52-8" aria-hidden="true" tabindex="-1"></a><span class="co"># 2: Find all contributors to those songs (excluding Oceanus community themselves)</span></span>
+<span id="cb52-9"><a href="#cb52-9" aria-hidden="true" tabindex="-1"></a>collaborator_ids <span class="ot">&lt;-</span> edges_tbl <span class="sc">%&gt;%</span></span>
+<span id="cb52-10"><a href="#cb52-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Edge Type</span><span class="st">`</span> <span class="sc">%in%</span> creative_roles,</span>
+<span id="cb52-11"><a href="#cb52-11" aria-hidden="true" tabindex="-1"></a>         target <span class="sc">%in%</span> oceanus_songs_all_roles,</span>
+<span id="cb52-12"><a href="#cb52-12" aria-hidden="true" tabindex="-1"></a>         <span class="sc">!</span>source <span class="sc">%in%</span> oceanus_community<span class="sc">$</span>id) <span class="sc">%&gt;%</span></span>
+<span id="cb52-13"><a href="#cb52-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(source) <span class="sc">%&gt;%</span></span>
+<span id="cb52-14"><a href="#cb52-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unique</span>()</span>
+<span id="cb52-15"><a href="#cb52-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-16"><a href="#cb52-16" aria-hidden="true" tabindex="-1"></a><span class="co"># 3: Get node info for these collaborators</span></span>
+<span id="cb52-17"><a href="#cb52-17" aria-hidden="true" tabindex="-1"></a>oceanus_collaborators <span class="ot">&lt;-</span> nodes_tbl <span class="sc">%&gt;%</span></span>
+<span id="cb52-18"><a href="#cb52-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(id <span class="sc">%in%</span> collaborator_ids,</span>
+<span id="cb52-19"><a href="#cb52-19" aria-hidden="true" tabindex="-1"></a>         <span class="st">`</span><span class="at">Node Type</span><span class="st">`</span> <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">"Person"</span>, <span class="st">"MusicGroup"</span>, <span class="st">"RecordLabel"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb52-20"><a href="#cb52-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(id, name, <span class="at">type =</span> <span class="st">`</span><span class="at">Node Type</span><span class="st">`</span>)</span>
+<span id="cb52-21"><a href="#cb52-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb52-22"><a href="#cb52-22" aria-hidden="true" tabindex="-1"></a><span class="co"># View result</span></span>
+<span id="cb52-23"><a href="#cb52-23" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(oceanus_collaborators)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 913 × 3
@@ -1144,6 +1270,101 @@ LyricalReferenceTo
 # ℹ 903 more rows</code></pre>
 </div>
 </div>
+<section id="focused-heatmap-of-the-top-10-collaborators-vs-top-10-oceanus-folk-members" class="level3">
+<h3 class="anchored" data-anchor-id="focused-heatmap-of-the-top-10-collaborators-vs-top-10-oceanus-folk-members">Focused heatmap of the Top 10 Collaborators vs Top 10 Oceanus Folk Members</h3>
+<div class="cell">
+<details class="code-fold">
+<summary>Show the code</summary>
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(forcats)</span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-6"><a href="#cb54-6" aria-hidden="true" tabindex="-1"></a><span class="co"># 0. Parameters</span></span>
+<span id="cb54-7"><a href="#cb54-7" aria-hidden="true" tabindex="-1"></a>top_n_collabs <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb54-8"><a href="#cb54-8" aria-hidden="true" tabindex="-1"></a>top_m_members <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb54-9"><a href="#cb54-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-10"><a href="#cb54-10" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Ensure ID columns are character</span></span>
+<span id="cb54-11"><a href="#cb54-11" aria-hidden="true" tabindex="-1"></a>oceanus_ids   <span class="ot">&lt;-</span> <span class="fu">as.character</span>(oceanus_community<span class="sc">$</span>id)</span>
+<span id="cb54-12"><a href="#cb54-12" aria-hidden="true" tabindex="-1"></a>collab_ids    <span class="ot">&lt;-</span> <span class="fu">as.character</span>(collaborator_ids)</span>
+<span id="cb54-13"><a href="#cb54-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-14"><a href="#cb54-14" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Count shared‐song pairs</span></span>
+<span id="cb54-15"><a href="#cb54-15" aria-hidden="true" tabindex="-1"></a>pair_counts <span class="ot">&lt;-</span> edges_tbl <span class="sc">%&gt;%</span></span>
+<span id="cb54-16"><a href="#cb54-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Edge Type</span><span class="st">`</span> <span class="sc">%in%</span> creative_roles,</span>
+<span id="cb54-17"><a href="#cb54-17" aria-hidden="true" tabindex="-1"></a>         source <span class="sc">%in%</span> oceanus_ids) <span class="sc">%&gt;%</span></span>
+<span id="cb54-18"><a href="#cb54-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">transmute</span>(<span class="at">oc_id =</span> <span class="fu">as.character</span>(source), <span class="at">song =</span> target) <span class="sc">%&gt;%</span></span>
+<span id="cb54-19"><a href="#cb54-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(</span>
+<span id="cb54-20"><a href="#cb54-20" aria-hidden="true" tabindex="-1"></a>    edges_tbl <span class="sc">%&gt;%</span></span>
+<span id="cb54-21"><a href="#cb54-21" aria-hidden="true" tabindex="-1"></a>      <span class="fu">filter</span>(<span class="st">`</span><span class="at">Edge Type</span><span class="st">`</span> <span class="sc">%in%</span> creative_roles,</span>
+<span id="cb54-22"><a href="#cb54-22" aria-hidden="true" tabindex="-1"></a>             source <span class="sc">%in%</span> collab_ids) <span class="sc">%&gt;%</span></span>
+<span id="cb54-23"><a href="#cb54-23" aria-hidden="true" tabindex="-1"></a>      <span class="fu">transmute</span>(<span class="at">collab_id =</span> <span class="fu">as.character</span>(source), <span class="at">song =</span> target),</span>
+<span id="cb54-24"><a href="#cb54-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="st">"song"</span></span>
+<span id="cb54-25"><a href="#cb54-25" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb54-26"><a href="#cb54-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(oc_id, collab_id, song) <span class="sc">%&gt;%</span></span>
+<span id="cb54-27"><a href="#cb54-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(oc_id, collab_id, <span class="at">name =</span> <span class="st">"shared_songs"</span>)</span>
+<span id="cb54-28"><a href="#cb54-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-29"><a href="#cb54-29" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Build heatmap_df with names and complete zeros</span></span>
+<span id="cb54-30"><a href="#cb54-30" aria-hidden="true" tabindex="-1"></a>heatmap_df <span class="ot">&lt;-</span> pair_counts <span class="sc">%&gt;%</span></span>
+<span id="cb54-31"><a href="#cb54-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(</span>
+<span id="cb54-32"><a href="#cb54-32" aria-hidden="true" tabindex="-1"></a>    oceanus_community <span class="sc">%&gt;%</span> <span class="fu">transmute</span>(<span class="at">oc_id =</span> <span class="fu">as.character</span>(id), <span class="at">oc_name =</span> name),</span>
+<span id="cb54-33"><a href="#cb54-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="st">"oc_id"</span></span>
+<span id="cb54-34"><a href="#cb54-34" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb54-35"><a href="#cb54-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(</span>
+<span id="cb54-36"><a href="#cb54-36" aria-hidden="true" tabindex="-1"></a>    oceanus_collaborators <span class="sc">%&gt;%</span> <span class="fu">transmute</span>(<span class="at">collab_id =</span> <span class="fu">as.character</span>(id), <span class="at">collab_name =</span> name),</span>
+<span id="cb54-37"><a href="#cb54-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">by =</span> <span class="st">"collab_id"</span></span>
+<span id="cb54-38"><a href="#cb54-38" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb54-39"><a href="#cb54-39" aria-hidden="true" tabindex="-1"></a>  <span class="co"># fill in zeros for missing combos</span></span>
+<span id="cb54-40"><a href="#cb54-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">complete</span>(oc_name, collab_name, <span class="at">fill =</span> <span class="fu">list</span>(<span class="at">shared_songs =</span> <span class="dv">0</span>))</span>
+<span id="cb54-41"><a href="#cb54-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-42"><a href="#cb54-42" aria-hidden="true" tabindex="-1"></a><span class="co"># 4. Pick Top N Collaborators</span></span>
+<span id="cb54-43"><a href="#cb54-43" aria-hidden="true" tabindex="-1"></a>top_collabs <span class="ot">&lt;-</span> heatmap_df <span class="sc">%&gt;%</span></span>
+<span id="cb54-44"><a href="#cb54-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(collab_name) <span class="sc">%&gt;%</span></span>
+<span id="cb54-45"><a href="#cb54-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">total_shared =</span> <span class="fu">sum</span>(shared_songs), <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb54-46"><a href="#cb54-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_max</span>(total_shared, <span class="at">n =</span> top_n_collabs) <span class="sc">%&gt;%</span></span>
+<span id="cb54-47"><a href="#cb54-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(collab_name)</span>
+<span id="cb54-48"><a href="#cb54-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-49"><a href="#cb54-49" aria-hidden="true" tabindex="-1"></a><span class="co"># 5. Subset &amp; pick Top M Members</span></span>
+<span id="cb54-50"><a href="#cb54-50" aria-hidden="true" tabindex="-1"></a>hm1 <span class="ot">&lt;-</span> heatmap_df <span class="sc">%&gt;%</span> <span class="fu">filter</span>(collab_name <span class="sc">%in%</span> top_collabs)</span>
+<span id="cb54-51"><a href="#cb54-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-52"><a href="#cb54-52" aria-hidden="true" tabindex="-1"></a>top_members <span class="ot">&lt;-</span> hm1 <span class="sc">%&gt;%</span></span>
+<span id="cb54-53"><a href="#cb54-53" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(oc_name) <span class="sc">%&gt;%</span></span>
+<span id="cb54-54"><a href="#cb54-54" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">total_shared =</span> <span class="fu">sum</span>(shared_songs), <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb54-55"><a href="#cb54-55" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_max</span>(total_shared, <span class="at">n =</span> top_m_members) <span class="sc">%&gt;%</span></span>
+<span id="cb54-56"><a href="#cb54-56" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(oc_name)</span>
+<span id="cb54-57"><a href="#cb54-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-58"><a href="#cb54-58" aria-hidden="true" tabindex="-1"></a><span class="co"># 6. Build the final small data frame</span></span>
+<span id="cb54-59"><a href="#cb54-59" aria-hidden="true" tabindex="-1"></a>hm_small2 <span class="ot">&lt;-</span> hm1 <span class="sc">%&gt;%</span></span>
+<span id="cb54-60"><a href="#cb54-60" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(oc_name <span class="sc">%in%</span> top_members, <span class="sc">!</span><span class="fu">is.na</span>(collab_name)) <span class="sc">%&gt;%</span></span>
+<span id="cb54-61"><a href="#cb54-61" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb54-62"><a href="#cb54-62" aria-hidden="true" tabindex="-1"></a>    <span class="at">collab_name =</span> <span class="fu">fct_reorder</span>(collab_name, shared_songs, <span class="at">.fun =</span> sum),</span>
+<span id="cb54-63"><a href="#cb54-63" aria-hidden="true" tabindex="-1"></a>    <span class="at">oc_name     =</span> <span class="fu">fct_reorder</span>(oc_name,     shared_songs, <span class="at">.fun =</span> sum)</span>
+<span id="cb54-64"><a href="#cb54-64" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb54-65"><a href="#cb54-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb54-66"><a href="#cb54-66" aria-hidden="true" tabindex="-1"></a><span class="co"># 7. Plot</span></span>
+<span id="cb54-67"><a href="#cb54-67" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(hm_small2, <span class="fu">aes</span>(<span class="at">x =</span> collab_name, <span class="at">y =</span> oc_name, <span class="at">fill =</span> shared_songs)) <span class="sc">+</span></span>
+<span id="cb54-68"><a href="#cb54-68" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_tile</span>(<span class="at">color =</span> <span class="st">"grey90"</span>) <span class="sc">+</span></span>
+<span id="cb54-69"><a href="#cb54-69" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_gradient</span>(<span class="at">low =</span> <span class="st">"white"</span>, <span class="at">high =</span> <span class="st">"Red"</span>, <span class="at">name =</span> <span class="st">"Shared</span><span class="sc">\n</span><span class="st">Songs"</span>) <span class="sc">+</span></span>
+<span id="cb54-70"><a href="#cb54-70" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb54-71"><a href="#cb54-71" aria-hidden="true" tabindex="-1"></a>    <span class="at">x     =</span> <span class="fu">sprintf</span>(<span class="st">"Top %d Collaborators"</span>, top_n_collabs),</span>
+<span id="cb54-72"><a href="#cb54-72" aria-hidden="true" tabindex="-1"></a>    <span class="at">y     =</span> <span class="fu">sprintf</span>(<span class="st">"Top %d Oceanus Members"</span>, top_m_members),</span>
+<span id="cb54-73"><a href="#cb54-73" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Heatmap of Top Collaborations"</span></span>
+<span id="cb54-74"><a href="#cb54-74" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb54-75"><a href="#cb54-75" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb54-76"><a href="#cb54-76" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb54-77"><a href="#cb54-77" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>, <span class="at">size =</span> <span class="dv">8</span>),</span>
+<span id="cb54-78"><a href="#cb54-78" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">8</span>),</span>
+<span id="cb54-79"><a href="#cb54-79" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid   =</span> <span class="fu">element_blank</span>()</span>
+<span id="cb54-80"><a href="#cb54-80" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Take-home_Ex02_files/figure-html/heatmap-top10-1.png" class="img-fluid figure-img" width="1152"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
 </section>
 <section id="c3.-tracing-sailor-shifts-influence-through-the-network" class="level2">
 <h2 class="anchored" data-anchor-id="c3.-tracing-sailor-shifts-influence-through-the-network">C3. Tracing Sailor Shift’s Influence Through the Network</h2>
@@ -1161,110 +1382,110 @@ LyricalReferenceTo
 <div class="cell">
 <details class="code-fold">
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tibble)</span>
-<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(igraph)</span>
-<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
-<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 1: Prepare nodes </span></span>
-<span id="cb52-7"><a href="#cb52-7" aria-hidden="true" tabindex="-1"></a>nodes_tbl <span class="ot">&lt;-</span> nodes_tbl <span class="sc">%&gt;%</span></span>
-<span id="cb52-8"><a href="#cb52-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">id =</span> <span class="fu">as.character</span>(id))  <span class="co"># IDs must be character for joining</span></span>
-<span id="cb52-9"><a href="#cb52-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-10"><a href="#cb52-10" aria-hidden="true" tabindex="-1"></a>nodes_indexed <span class="ot">&lt;-</span> nodes_tbl <span class="sc">%&gt;%</span></span>
-<span id="cb52-11"><a href="#cb52-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">index =</span> <span class="fu">row_number</span>())  <span class="co"># this will be used for igraph</span></span>
-<span id="cb52-12"><a href="#cb52-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-13"><a href="#cb52-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 2: Create mapping table</span></span>
-<span id="cb52-14"><a href="#cb52-14" aria-hidden="true" tabindex="-1"></a>id_map <span class="ot">&lt;-</span> nodes_indexed <span class="sc">%&gt;%</span></span>
-<span id="cb52-15"><a href="#cb52-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(id, index)</span>
-<span id="cb52-16"><a href="#cb52-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-17"><a href="#cb52-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 3</span></span>
-<span id="cb52-18"><a href="#cb52-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Start from a clean edges_tbl</span></span>
-<span id="cb52-19"><a href="#cb52-19" aria-hidden="true" tabindex="-1"></a>edges_base <span class="ot">&lt;-</span> edges_tbl <span class="sc">%&gt;%</span></span>
-<span id="cb52-20"><a href="#cb52-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Edge Type</span><span class="st">`</span> <span class="sc">%in%</span> influence_types) <span class="sc">%&gt;%</span></span>
-<span id="cb52-21"><a href="#cb52-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">source =</span> <span class="fu">as.character</span>(source), <span class="at">target =</span> <span class="fu">as.character</span>(target))</span>
-<span id="cb52-22"><a href="#cb52-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-23"><a href="#cb52-23" aria-hidden="true" tabindex="-1"></a><span class="co"># First: Join for 'from'</span></span>
-<span id="cb52-24"><a href="#cb52-24" aria-hidden="true" tabindex="-1"></a>edges_with_from <span class="ot">&lt;-</span> edges_base <span class="sc">%&gt;%</span></span>
-<span id="cb52-25"><a href="#cb52-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(id_map, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"source"</span> <span class="ot">=</span> <span class="st">"id"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb52-26"><a href="#cb52-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">from_index =</span> index)</span>
-<span id="cb52-27"><a href="#cb52-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-28"><a href="#cb52-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Second: Join for 'to'</span></span>
-<span id="cb52-29"><a href="#cb52-29" aria-hidden="true" tabindex="-1"></a>edges_with_to <span class="ot">&lt;-</span> edges_with_from <span class="sc">%&gt;%</span></span>
-<span id="cb52-30"><a href="#cb52-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(id_map, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"target"</span> <span class="ot">=</span> <span class="st">"id"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb52-31"><a href="#cb52-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">to_index =</span> index)</span>
-<span id="cb52-32"><a href="#cb52-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-33"><a href="#cb52-33" aria-hidden="true" tabindex="-1"></a><span class="co"># Final cleaned influence_edges</span></span>
-<span id="cb52-34"><a href="#cb52-34" aria-hidden="true" tabindex="-1"></a>influence_edges <span class="ot">&lt;-</span> edges_with_to <span class="sc">%&gt;%</span></span>
-<span id="cb52-35"><a href="#cb52-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(from_index) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(to_index)) <span class="sc">%&gt;%</span></span>
-<span id="cb52-36"><a href="#cb52-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="at">from =</span> from_index, <span class="at">to =</span> to_index, <span class="st">`</span><span class="at">Edge Type</span><span class="st">`</span>)</span>
-<span id="cb52-37"><a href="#cb52-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-38"><a href="#cb52-38" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 4: Build igraph using numeric index</span></span>
-<span id="cb52-39"><a href="#cb52-39" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="fu">graph_from_data_frame</span>(</span>
-<span id="cb52-40"><a href="#cb52-40" aria-hidden="true" tabindex="-1"></a>  <span class="at">d =</span> influence_edges,</span>
-<span id="cb52-41"><a href="#cb52-41" aria-hidden="true" tabindex="-1"></a>  <span class="at">vertices =</span> nodes_indexed <span class="sc">%&gt;%</span> <span class="fu">select</span>(index),  <span class="co"># use only index column as unique node IDs</span></span>
-<span id="cb52-42"><a href="#cb52-42" aria-hidden="true" tabindex="-1"></a>  <span class="at">directed =</span> <span class="cn">TRUE</span></span>
-<span id="cb52-43"><a href="#cb52-43" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb52-44"><a href="#cb52-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-45"><a href="#cb52-45" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 5</span></span>
-<span id="cb52-46"><a href="#cb52-46" aria-hidden="true" tabindex="-1"></a>sailor_id <span class="ot">&lt;-</span> nodes_tbl <span class="sc">%&gt;%</span></span>
-<span id="cb52-47"><a href="#cb52-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(name <span class="sc">==</span> <span class="st">"Sailor Shift"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb52-48"><a href="#cb52-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(id)</span>
-<span id="cb52-49"><a href="#cb52-49" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-50"><a href="#cb52-50" aria-hidden="true" tabindex="-1"></a>sailor_song_ids <span class="ot">&lt;-</span> edges_tbl <span class="sc">%&gt;%</span></span>
-<span id="cb52-51"><a href="#cb52-51" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Edge Type</span><span class="st">`</span> <span class="sc">==</span> <span class="st">"PerformerOf"</span>, source <span class="sc">==</span> sailor_id) <span class="sc">%&gt;%</span></span>
-<span id="cb52-52"><a href="#cb52-52" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(target) <span class="sc">%&gt;%</span></span>
-<span id="cb52-53"><a href="#cb52-53" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.character</span>()</span>
-<span id="cb52-54"><a href="#cb52-54" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-55"><a href="#cb52-55" aria-hidden="true" tabindex="-1"></a>sailor_song_indices <span class="ot">&lt;-</span> id_map <span class="sc">%&gt;%</span></span>
-<span id="cb52-56"><a href="#cb52-56" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(id <span class="sc">%in%</span> sailor_song_ids) <span class="sc">%&gt;%</span></span>
-<span id="cb52-57"><a href="#cb52-57" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(index)</span>
-<span id="cb52-58"><a href="#cb52-58" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-59"><a href="#cb52-59" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 6</span></span>
-<span id="cb52-60"><a href="#cb52-60" aria-hidden="true" tabindex="-1"></a>dist_matrix <span class="ot">&lt;-</span> <span class="fu">distances</span>(g, <span class="at">v =</span> sailor_song_indices, <span class="at">mode =</span> <span class="st">"out"</span>)</span>
-<span id="cb52-61"><a href="#cb52-61" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-62"><a href="#cb52-62" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 7</span></span>
-<span id="cb52-63"><a href="#cb52-63" aria-hidden="true" tabindex="-1"></a>dist_df <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(dist_matrix) <span class="sc">%&gt;%</span></span>
-<span id="cb52-64"><a href="#cb52-64" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rownames_to_column</span>(<span class="st">"sailor_song_index"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb52-65"><a href="#cb52-65" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>sailor_song_index, <span class="at">names_to =</span> <span class="st">"influenced_index"</span>, <span class="at">values_to =</span> <span class="st">"dist_from_sailor"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb52-66"><a href="#cb52-66" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">is.finite</span>(dist_from_sailor)) <span class="sc">%&gt;%</span></span>
-<span id="cb52-67"><a href="#cb52-67" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">everything</span>(), as.integer))</span>
-<span id="cb52-68"><a href="#cb52-68" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-69"><a href="#cb52-69" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 8</span></span>
-<span id="cb52-70"><a href="#cb52-70" aria-hidden="true" tabindex="-1"></a><span class="co"># Map indices back to node IDs</span></span>
-<span id="cb52-71"><a href="#cb52-71" aria-hidden="true" tabindex="-1"></a>dist_df <span class="ot">&lt;-</span> dist_df <span class="sc">%&gt;%</span></span>
-<span id="cb52-72"><a href="#cb52-72" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(nodes_indexed <span class="sc">%&gt;%</span> <span class="fu">select</span>(index, id), <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"sailor_song_index"</span> <span class="ot">=</span> <span class="st">"index"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb52-73"><a href="#cb52-73" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">sailor_song_id =</span> id) <span class="sc">%&gt;%</span></span>
-<span id="cb52-74"><a href="#cb52-74" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(nodes_indexed <span class="sc">%&gt;%</span> <span class="fu">select</span>(index, id), <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"influenced_index"</span> <span class="ot">=</span> <span class="st">"index"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb52-75"><a href="#cb52-75" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">influenced_song_id =</span> id)</span>
-<span id="cb52-76"><a href="#cb52-76" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-77"><a href="#cb52-77" aria-hidden="true" tabindex="-1"></a><span class="co"># Get song names</span></span>
-<span id="cb52-78"><a href="#cb52-78" aria-hidden="true" tabindex="-1"></a>song_names <span class="ot">&lt;-</span> nodes_tbl <span class="sc">%&gt;%</span></span>
-<span id="cb52-79"><a href="#cb52-79" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Node Type</span><span class="st">`</span> <span class="sc">==</span> <span class="st">"Song"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb52-80"><a href="#cb52-80" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(id, <span class="at">song_name =</span> name)</span>
-<span id="cb52-81"><a href="#cb52-81" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-82"><a href="#cb52-82" aria-hidden="true" tabindex="-1"></a>dist_named <span class="ot">&lt;-</span> dist_df <span class="sc">%&gt;%</span></span>
-<span id="cb52-83"><a href="#cb52-83" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(song_names, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"sailor_song_id"</span> <span class="ot">=</span> <span class="st">"id"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb52-84"><a href="#cb52-84" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">sailor_song =</span> song_name) <span class="sc">%&gt;%</span></span>
-<span id="cb52-85"><a href="#cb52-85" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(song_names, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"influenced_song_id"</span> <span class="ot">=</span> <span class="st">"id"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb52-86"><a href="#cb52-86" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">influenced_song =</span> song_name)</span>
-<span id="cb52-87"><a href="#cb52-87" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-88"><a href="#cb52-88" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 9</span></span>
-<span id="cb52-89"><a href="#cb52-89" aria-hidden="true" tabindex="-1"></a>creative_roles <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"PerformerOf"</span>, <span class="st">"ComposerOf"</span>, <span class="st">"LyricistOf"</span>, <span class="st">"ProducerOf"</span>)</span>
-<span id="cb52-90"><a href="#cb52-90" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-91"><a href="#cb52-91" aria-hidden="true" tabindex="-1"></a>influenced_edges <span class="ot">&lt;-</span> edges_tbl <span class="sc">%&gt;%</span></span>
-<span id="cb52-92"><a href="#cb52-92" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Edge Type</span><span class="st">`</span> <span class="sc">%in%</span> creative_roles,</span>
-<span id="cb52-93"><a href="#cb52-93" aria-hidden="true" tabindex="-1"></a>         target <span class="sc">%in%</span> dist_named<span class="sc">$</span>influenced_song_id,</span>
-<span id="cb52-94"><a href="#cb52-94" aria-hidden="true" tabindex="-1"></a>         source <span class="sc">%in%</span> oceanus_collaborators<span class="sc">$</span>id) <span class="sc">%&gt;%</span></span>
-<span id="cb52-95"><a href="#cb52-95" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">c</span>(source, target), as.character))</span>
-<span id="cb52-96"><a href="#cb52-96" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-97"><a href="#cb52-97" aria-hidden="true" tabindex="-1"></a>final_result <span class="ot">&lt;-</span> influenced_edges <span class="sc">%&gt;%</span></span>
-<span id="cb52-98"><a href="#cb52-98" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(nodes_tbl <span class="sc">%&gt;%</span> <span class="fu">select</span>(id, <span class="at">collaborator_name =</span> name), <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"source"</span> <span class="ot">=</span> <span class="st">"id"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb52-99"><a href="#cb52-99" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(dist_named, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"target"</span> <span class="ot">=</span> <span class="st">"influenced_song_id"</span>), <span class="at">relationship =</span> <span class="st">"many-to-many"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb52-100"><a href="#cb52-100" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(collaborator_name, influenced_song, sailor_song, dist_from_sailor) <span class="sc">%&gt;%</span></span>
-<span id="cb52-101"><a href="#cb52-101" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(dist_from_sailor, collaborator_name)</span>
-<span id="cb52-102"><a href="#cb52-102" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-103"><a href="#cb52-103" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb52-104"><a href="#cb52-104" aria-hidden="true" tabindex="-1"></a>final_result <span class="ot">&lt;-</span> final_result <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(sailor_song))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tibble)</span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(igraph)</span>
+<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 1: Prepare nodes </span></span>
+<span id="cb55-7"><a href="#cb55-7" aria-hidden="true" tabindex="-1"></a>nodes_tbl <span class="ot">&lt;-</span> nodes_tbl <span class="sc">%&gt;%</span></span>
+<span id="cb55-8"><a href="#cb55-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">id =</span> <span class="fu">as.character</span>(id))  <span class="co"># IDs must be character for joining</span></span>
+<span id="cb55-9"><a href="#cb55-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-10"><a href="#cb55-10" aria-hidden="true" tabindex="-1"></a>nodes_indexed <span class="ot">&lt;-</span> nodes_tbl <span class="sc">%&gt;%</span></span>
+<span id="cb55-11"><a href="#cb55-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">index =</span> <span class="fu">row_number</span>())  <span class="co"># this will be used for igraph</span></span>
+<span id="cb55-12"><a href="#cb55-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-13"><a href="#cb55-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 2: Create mapping table</span></span>
+<span id="cb55-14"><a href="#cb55-14" aria-hidden="true" tabindex="-1"></a>id_map <span class="ot">&lt;-</span> nodes_indexed <span class="sc">%&gt;%</span></span>
+<span id="cb55-15"><a href="#cb55-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(id, index)</span>
+<span id="cb55-16"><a href="#cb55-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-17"><a href="#cb55-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 3</span></span>
+<span id="cb55-18"><a href="#cb55-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Start from a clean edges_tbl</span></span>
+<span id="cb55-19"><a href="#cb55-19" aria-hidden="true" tabindex="-1"></a>edges_base <span class="ot">&lt;-</span> edges_tbl <span class="sc">%&gt;%</span></span>
+<span id="cb55-20"><a href="#cb55-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Edge Type</span><span class="st">`</span> <span class="sc">%in%</span> influence_types) <span class="sc">%&gt;%</span></span>
+<span id="cb55-21"><a href="#cb55-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">source =</span> <span class="fu">as.character</span>(source), <span class="at">target =</span> <span class="fu">as.character</span>(target))</span>
+<span id="cb55-22"><a href="#cb55-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-23"><a href="#cb55-23" aria-hidden="true" tabindex="-1"></a><span class="co"># First: Join for 'from'</span></span>
+<span id="cb55-24"><a href="#cb55-24" aria-hidden="true" tabindex="-1"></a>edges_with_from <span class="ot">&lt;-</span> edges_base <span class="sc">%&gt;%</span></span>
+<span id="cb55-25"><a href="#cb55-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(id_map, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"source"</span> <span class="ot">=</span> <span class="st">"id"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb55-26"><a href="#cb55-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">from_index =</span> index)</span>
+<span id="cb55-27"><a href="#cb55-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-28"><a href="#cb55-28" aria-hidden="true" tabindex="-1"></a><span class="co"># Second: Join for 'to'</span></span>
+<span id="cb55-29"><a href="#cb55-29" aria-hidden="true" tabindex="-1"></a>edges_with_to <span class="ot">&lt;-</span> edges_with_from <span class="sc">%&gt;%</span></span>
+<span id="cb55-30"><a href="#cb55-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(id_map, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"target"</span> <span class="ot">=</span> <span class="st">"id"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb55-31"><a href="#cb55-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">to_index =</span> index)</span>
+<span id="cb55-32"><a href="#cb55-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-33"><a href="#cb55-33" aria-hidden="true" tabindex="-1"></a><span class="co"># Final cleaned influence_edges</span></span>
+<span id="cb55-34"><a href="#cb55-34" aria-hidden="true" tabindex="-1"></a>influence_edges <span class="ot">&lt;-</span> edges_with_to <span class="sc">%&gt;%</span></span>
+<span id="cb55-35"><a href="#cb55-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(from_index) <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(to_index)) <span class="sc">%&gt;%</span></span>
+<span id="cb55-36"><a href="#cb55-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="at">from =</span> from_index, <span class="at">to =</span> to_index, <span class="st">`</span><span class="at">Edge Type</span><span class="st">`</span>)</span>
+<span id="cb55-37"><a href="#cb55-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-38"><a href="#cb55-38" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 4: Build igraph using numeric index</span></span>
+<span id="cb55-39"><a href="#cb55-39" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="fu">graph_from_data_frame</span>(</span>
+<span id="cb55-40"><a href="#cb55-40" aria-hidden="true" tabindex="-1"></a>  <span class="at">d =</span> influence_edges,</span>
+<span id="cb55-41"><a href="#cb55-41" aria-hidden="true" tabindex="-1"></a>  <span class="at">vertices =</span> nodes_indexed <span class="sc">%&gt;%</span> <span class="fu">select</span>(index),  <span class="co"># use only index column as unique node IDs</span></span>
+<span id="cb55-42"><a href="#cb55-42" aria-hidden="true" tabindex="-1"></a>  <span class="at">directed =</span> <span class="cn">TRUE</span></span>
+<span id="cb55-43"><a href="#cb55-43" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb55-44"><a href="#cb55-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-45"><a href="#cb55-45" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 5</span></span>
+<span id="cb55-46"><a href="#cb55-46" aria-hidden="true" tabindex="-1"></a>sailor_id <span class="ot">&lt;-</span> nodes_tbl <span class="sc">%&gt;%</span></span>
+<span id="cb55-47"><a href="#cb55-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(name <span class="sc">==</span> <span class="st">"Sailor Shift"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb55-48"><a href="#cb55-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(id)</span>
+<span id="cb55-49"><a href="#cb55-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-50"><a href="#cb55-50" aria-hidden="true" tabindex="-1"></a>sailor_song_ids <span class="ot">&lt;-</span> edges_tbl <span class="sc">%&gt;%</span></span>
+<span id="cb55-51"><a href="#cb55-51" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Edge Type</span><span class="st">`</span> <span class="sc">==</span> <span class="st">"PerformerOf"</span>, source <span class="sc">==</span> sailor_id) <span class="sc">%&gt;%</span></span>
+<span id="cb55-52"><a href="#cb55-52" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(target) <span class="sc">%&gt;%</span></span>
+<span id="cb55-53"><a href="#cb55-53" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as.character</span>()</span>
+<span id="cb55-54"><a href="#cb55-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-55"><a href="#cb55-55" aria-hidden="true" tabindex="-1"></a>sailor_song_indices <span class="ot">&lt;-</span> id_map <span class="sc">%&gt;%</span></span>
+<span id="cb55-56"><a href="#cb55-56" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(id <span class="sc">%in%</span> sailor_song_ids) <span class="sc">%&gt;%</span></span>
+<span id="cb55-57"><a href="#cb55-57" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pull</span>(index)</span>
+<span id="cb55-58"><a href="#cb55-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-59"><a href="#cb55-59" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 6</span></span>
+<span id="cb55-60"><a href="#cb55-60" aria-hidden="true" tabindex="-1"></a>dist_matrix <span class="ot">&lt;-</span> <span class="fu">distances</span>(g, <span class="at">v =</span> sailor_song_indices, <span class="at">mode =</span> <span class="st">"out"</span>)</span>
+<span id="cb55-61"><a href="#cb55-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-62"><a href="#cb55-62" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 7</span></span>
+<span id="cb55-63"><a href="#cb55-63" aria-hidden="true" tabindex="-1"></a>dist_df <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(dist_matrix) <span class="sc">%&gt;%</span></span>
+<span id="cb55-64"><a href="#cb55-64" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rownames_to_column</span>(<span class="st">"sailor_song_index"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb55-65"><a href="#cb55-65" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="sc">-</span>sailor_song_index, <span class="at">names_to =</span> <span class="st">"influenced_index"</span>, <span class="at">values_to =</span> <span class="st">"dist_from_sailor"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb55-66"><a href="#cb55-66" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">is.finite</span>(dist_from_sailor)) <span class="sc">%&gt;%</span></span>
+<span id="cb55-67"><a href="#cb55-67" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">everything</span>(), as.integer))</span>
+<span id="cb55-68"><a href="#cb55-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-69"><a href="#cb55-69" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 8</span></span>
+<span id="cb55-70"><a href="#cb55-70" aria-hidden="true" tabindex="-1"></a><span class="co"># Map indices back to node IDs</span></span>
+<span id="cb55-71"><a href="#cb55-71" aria-hidden="true" tabindex="-1"></a>dist_df <span class="ot">&lt;-</span> dist_df <span class="sc">%&gt;%</span></span>
+<span id="cb55-72"><a href="#cb55-72" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(nodes_indexed <span class="sc">%&gt;%</span> <span class="fu">select</span>(index, id), <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"sailor_song_index"</span> <span class="ot">=</span> <span class="st">"index"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb55-73"><a href="#cb55-73" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">sailor_song_id =</span> id) <span class="sc">%&gt;%</span></span>
+<span id="cb55-74"><a href="#cb55-74" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(nodes_indexed <span class="sc">%&gt;%</span> <span class="fu">select</span>(index, id), <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"influenced_index"</span> <span class="ot">=</span> <span class="st">"index"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb55-75"><a href="#cb55-75" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">influenced_song_id =</span> id)</span>
+<span id="cb55-76"><a href="#cb55-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-77"><a href="#cb55-77" aria-hidden="true" tabindex="-1"></a><span class="co"># Get song names</span></span>
+<span id="cb55-78"><a href="#cb55-78" aria-hidden="true" tabindex="-1"></a>song_names <span class="ot">&lt;-</span> nodes_tbl <span class="sc">%&gt;%</span></span>
+<span id="cb55-79"><a href="#cb55-79" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Node Type</span><span class="st">`</span> <span class="sc">==</span> <span class="st">"Song"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb55-80"><a href="#cb55-80" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(id, <span class="at">song_name =</span> name)</span>
+<span id="cb55-81"><a href="#cb55-81" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-82"><a href="#cb55-82" aria-hidden="true" tabindex="-1"></a>dist_named <span class="ot">&lt;-</span> dist_df <span class="sc">%&gt;%</span></span>
+<span id="cb55-83"><a href="#cb55-83" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(song_names, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"sailor_song_id"</span> <span class="ot">=</span> <span class="st">"id"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb55-84"><a href="#cb55-84" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">sailor_song =</span> song_name) <span class="sc">%&gt;%</span></span>
+<span id="cb55-85"><a href="#cb55-85" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(song_names, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"influenced_song_id"</span> <span class="ot">=</span> <span class="st">"id"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb55-86"><a href="#cb55-86" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">influenced_song =</span> song_name)</span>
+<span id="cb55-87"><a href="#cb55-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-88"><a href="#cb55-88" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 9</span></span>
+<span id="cb55-89"><a href="#cb55-89" aria-hidden="true" tabindex="-1"></a>creative_roles <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"PerformerOf"</span>, <span class="st">"ComposerOf"</span>, <span class="st">"LyricistOf"</span>, <span class="st">"ProducerOf"</span>)</span>
+<span id="cb55-90"><a href="#cb55-90" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-91"><a href="#cb55-91" aria-hidden="true" tabindex="-1"></a>influenced_edges <span class="ot">&lt;-</span> edges_tbl <span class="sc">%&gt;%</span></span>
+<span id="cb55-92"><a href="#cb55-92" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="st">`</span><span class="at">Edge Type</span><span class="st">`</span> <span class="sc">%in%</span> creative_roles,</span>
+<span id="cb55-93"><a href="#cb55-93" aria-hidden="true" tabindex="-1"></a>         target <span class="sc">%in%</span> dist_named<span class="sc">$</span>influenced_song_id,</span>
+<span id="cb55-94"><a href="#cb55-94" aria-hidden="true" tabindex="-1"></a>         source <span class="sc">%in%</span> oceanus_collaborators<span class="sc">$</span>id) <span class="sc">%&gt;%</span></span>
+<span id="cb55-95"><a href="#cb55-95" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="fu">c</span>(source, target), as.character))</span>
+<span id="cb55-96"><a href="#cb55-96" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-97"><a href="#cb55-97" aria-hidden="true" tabindex="-1"></a>final_result <span class="ot">&lt;-</span> influenced_edges <span class="sc">%&gt;%</span></span>
+<span id="cb55-98"><a href="#cb55-98" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(nodes_tbl <span class="sc">%&gt;%</span> <span class="fu">select</span>(id, <span class="at">collaborator_name =</span> name), <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"source"</span> <span class="ot">=</span> <span class="st">"id"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb55-99"><a href="#cb55-99" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(dist_named, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"target"</span> <span class="ot">=</span> <span class="st">"influenced_song_id"</span>), <span class="at">relationship =</span> <span class="st">"many-to-many"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb55-100"><a href="#cb55-100" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(collaborator_name, influenced_song, sailor_song, dist_from_sailor) <span class="sc">%&gt;%</span></span>
+<span id="cb55-101"><a href="#cb55-101" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(dist_from_sailor, collaborator_name)</span>
+<span id="cb55-102"><a href="#cb55-102" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-103"><a href="#cb55-103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb55-104"><a href="#cb55-104" aria-hidden="true" tabindex="-1"></a>final_result <span class="ot">&lt;-</span> final_result <span class="sc">%&gt;%</span> <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(sailor_song))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section>
@@ -1280,7 +1501,7 @@ LyricalReferenceTo
 </ul>
 <p>Songs like “Saltwater Hymn” and “Moon Over the Tide” played a key role in spreading Sailor Shift’s influence to other artists, even through several layers of connection.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(final_result, <span class="dv">20</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(final_result, <span class="dv">20</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 16 × 4
    collaborator_name  influenced_song               sailor_song dist_from_sailor
@@ -1309,74 +1530,74 @@ LyricalReferenceTo
 <div class="cell">
 <details class="code-fold">
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidygraph)</span>
-<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggraph)</span>
-<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggforce)</span>
-<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 1: Prepare nodes</span></span>
-<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a>node_table <span class="ot">&lt;-</span> final_result <span class="sc">%&gt;%</span></span>
-<span id="cb55-7"><a href="#cb55-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">c</span>(sailor_song, influenced_song, collaborator_name),</span>
-<span id="cb55-8"><a href="#cb55-8" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">"type"</span>, <span class="at">values_to =</span> <span class="st">"label"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb55-9"><a href="#cb55-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(label, type) <span class="sc">%&gt;%</span></span>
-<span id="cb55-10"><a href="#cb55-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">id =</span> <span class="fu">row_number</span>())</span>
-<span id="cb55-11"><a href="#cb55-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb55-12"><a href="#cb55-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 2: Map each node label to ID</span></span>
-<span id="cb55-13"><a href="#cb55-13" aria-hidden="true" tabindex="-1"></a>label_to_id <span class="ot">&lt;-</span> node_table <span class="sc">%&gt;%</span> <span class="fu">select</span>(label, id)</span>
-<span id="cb55-14"><a href="#cb55-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb55-15"><a href="#cb55-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 3: Build edges</span></span>
-<span id="cb55-16"><a href="#cb55-16" aria-hidden="true" tabindex="-1"></a>edges_song_to_song <span class="ot">&lt;-</span> final_result <span class="sc">%&gt;%</span></span>
-<span id="cb55-17"><a href="#cb55-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="at">from =</span> sailor_song, <span class="at">to =</span> influenced_song) <span class="sc">%&gt;%</span></span>
-<span id="cb55-18"><a href="#cb55-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(label_to_id, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"from"</span> <span class="ot">=</span> <span class="st">"label"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb55-19"><a href="#cb55-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">from_id =</span> id) <span class="sc">%&gt;%</span></span>
-<span id="cb55-20"><a href="#cb55-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(label_to_id, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"to"</span> <span class="ot">=</span> <span class="st">"label"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb55-21"><a href="#cb55-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">to_id =</span> id) <span class="sc">%&gt;%</span></span>
-<span id="cb55-22"><a href="#cb55-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="at">from =</span> from_id, <span class="at">to =</span> to_id) <span class="sc">%&gt;%</span></span>
-<span id="cb55-23"><a href="#cb55-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">type =</span> <span class="st">"influence"</span>)</span>
-<span id="cb55-24"><a href="#cb55-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb55-25"><a href="#cb55-25" aria-hidden="true" tabindex="-1"></a>edges_song_to_person <span class="ot">&lt;-</span> final_result <span class="sc">%&gt;%</span></span>
-<span id="cb55-26"><a href="#cb55-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="at">from =</span> influenced_song, <span class="at">to =</span> collaborator_name) <span class="sc">%&gt;%</span></span>
-<span id="cb55-27"><a href="#cb55-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(label_to_id, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"from"</span> <span class="ot">=</span> <span class="st">"label"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb55-28"><a href="#cb55-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">from_id =</span> id) <span class="sc">%&gt;%</span></span>
-<span id="cb55-29"><a href="#cb55-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(label_to_id, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"to"</span> <span class="ot">=</span> <span class="st">"label"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb55-30"><a href="#cb55-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">to_id =</span> id) <span class="sc">%&gt;%</span></span>
-<span id="cb55-31"><a href="#cb55-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="at">from =</span> from_id, <span class="at">to =</span> to_id) <span class="sc">%&gt;%</span></span>
-<span id="cb55-32"><a href="#cb55-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">type =</span> <span class="st">"collaboration"</span>)</span>
-<span id="cb55-33"><a href="#cb55-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb55-34"><a href="#cb55-34" aria-hidden="true" tabindex="-1"></a><span class="co"># Add dist_from_sailor to influence edges</span></span>
-<span id="cb55-35"><a href="#cb55-35" aria-hidden="true" tabindex="-1"></a>edges_song_to_song <span class="ot">&lt;-</span> final_result <span class="sc">%&gt;%</span></span>
-<span id="cb55-36"><a href="#cb55-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="at">from =</span> sailor_song, <span class="at">to =</span> influenced_song, dist_from_sailor) <span class="sc">%&gt;%</span></span>
-<span id="cb55-37"><a href="#cb55-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(label_to_id, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"from"</span> <span class="ot">=</span> <span class="st">"label"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb55-38"><a href="#cb55-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">from_id =</span> id) <span class="sc">%&gt;%</span></span>
-<span id="cb55-39"><a href="#cb55-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(label_to_id, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"to"</span> <span class="ot">=</span> <span class="st">"label"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb55-40"><a href="#cb55-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">to_id =</span> id) <span class="sc">%&gt;%</span></span>
-<span id="cb55-41"><a href="#cb55-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="at">from =</span> from_id, <span class="at">to =</span> to_id, dist_from_sailor) <span class="sc">%&gt;%</span></span>
-<span id="cb55-42"><a href="#cb55-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">type =</span> <span class="st">"influence"</span>)</span>
-<span id="cb55-43"><a href="#cb55-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb55-44"><a href="#cb55-44" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine all edges</span></span>
-<span id="cb55-45"><a href="#cb55-45" aria-hidden="true" tabindex="-1"></a>edges_all <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(edges_song_to_song, edges_song_to_person)</span>
-<span id="cb55-46"><a href="#cb55-46" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb55-47"><a href="#cb55-47" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 4: Build graph</span></span>
-<span id="cb55-48"><a href="#cb55-48" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="fu">tbl_graph</span>(<span class="at">nodes =</span> node_table, <span class="at">edges =</span> edges_all, <span class="at">directed =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb55-49"><a href="#cb55-49" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb55-50"><a href="#cb55-50" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb55-51"><a href="#cb55-51" aria-hidden="true" tabindex="-1"></a>layout <span class="ot">&lt;-</span> <span class="fu">create_layout</span>(g, <span class="at">layout =</span> <span class="st">"fr"</span>)</span>
-<span id="cb55-52"><a href="#cb55-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb55-53"><a href="#cb55-53" aria-hidden="true" tabindex="-1"></a><span class="co"># Pull node positions by index</span></span>
-<span id="cb55-54"><a href="#cb55-54" aria-hidden="true" tabindex="-1"></a>nodes_pos <span class="ot">&lt;-</span> layout <span class="sc">%&gt;%</span></span>
-<span id="cb55-55"><a href="#cb55-55" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(.ggraph.index, x, y)</span>
-<span id="cb55-56"><a href="#cb55-56" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb55-57"><a href="#cb55-57" aria-hidden="true" tabindex="-1"></a><span class="co"># Join coordinates to edge table</span></span>
-<span id="cb55-58"><a href="#cb55-58" aria-hidden="true" tabindex="-1"></a>edges_label_data <span class="ot">&lt;-</span> edges_all <span class="sc">%&gt;%</span></span>
-<span id="cb55-59"><a href="#cb55-59" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(type <span class="sc">==</span> <span class="st">"influence"</span> <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(dist_from_sailor)) <span class="sc">%&gt;%</span></span>
-<span id="cb55-60"><a href="#cb55-60" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(nodes_pos, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"from"</span> <span class="ot">=</span> <span class="st">".ggraph.index"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb55-61"><a href="#cb55-61" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">x_from =</span> x, <span class="at">y_from =</span> y) <span class="sc">%&gt;%</span></span>
-<span id="cb55-62"><a href="#cb55-62" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(nodes_pos, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"to"</span> <span class="ot">=</span> <span class="st">".ggraph.index"</span>)) <span class="sc">%&gt;%</span></span>
-<span id="cb55-63"><a href="#cb55-63" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">x_to =</span> x, <span class="at">y_to =</span> y) <span class="sc">%&gt;%</span></span>
-<span id="cb55-64"><a href="#cb55-64" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb55-65"><a href="#cb55-65" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> (x_from <span class="sc">+</span> x_to) <span class="sc">/</span> <span class="dv">2</span>,</span>
-<span id="cb55-66"><a href="#cb55-66" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> (y_from <span class="sc">+</span> y_to) <span class="sc">/</span> <span class="dv">2</span>,</span>
-<span id="cb55-67"><a href="#cb55-67" aria-hidden="true" tabindex="-1"></a>    <span class="at">label =</span> <span class="fu">paste0</span>(dist_from_sailor, <span class="st">" hop"</span>, <span class="fu">ifelse</span>(dist_from_sailor <span class="sc">&gt;</span> <span class="dv">1</span>, <span class="st">"s"</span>, <span class="st">""</span>))</span>
-<span id="cb55-68"><a href="#cb55-68" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidygraph)</span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggraph)</span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggforce)</span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 1: Prepare nodes</span></span>
+<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a>node_table <span class="ot">&lt;-</span> final_result <span class="sc">%&gt;%</span></span>
+<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">c</span>(sailor_song, influenced_song, collaborator_name),</span>
+<span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">"type"</span>, <span class="at">values_to =</span> <span class="st">"label"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(label, type) <span class="sc">%&gt;%</span></span>
+<span id="cb58-10"><a href="#cb58-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">id =</span> <span class="fu">row_number</span>())</span>
+<span id="cb58-11"><a href="#cb58-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-12"><a href="#cb58-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 2: Map each node label to ID</span></span>
+<span id="cb58-13"><a href="#cb58-13" aria-hidden="true" tabindex="-1"></a>label_to_id <span class="ot">&lt;-</span> node_table <span class="sc">%&gt;%</span> <span class="fu">select</span>(label, id)</span>
+<span id="cb58-14"><a href="#cb58-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-15"><a href="#cb58-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 3: Build edges</span></span>
+<span id="cb58-16"><a href="#cb58-16" aria-hidden="true" tabindex="-1"></a>edges_song_to_song <span class="ot">&lt;-</span> final_result <span class="sc">%&gt;%</span></span>
+<span id="cb58-17"><a href="#cb58-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="at">from =</span> sailor_song, <span class="at">to =</span> influenced_song) <span class="sc">%&gt;%</span></span>
+<span id="cb58-18"><a href="#cb58-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(label_to_id, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"from"</span> <span class="ot">=</span> <span class="st">"label"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb58-19"><a href="#cb58-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">from_id =</span> id) <span class="sc">%&gt;%</span></span>
+<span id="cb58-20"><a href="#cb58-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(label_to_id, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"to"</span> <span class="ot">=</span> <span class="st">"label"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb58-21"><a href="#cb58-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">to_id =</span> id) <span class="sc">%&gt;%</span></span>
+<span id="cb58-22"><a href="#cb58-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="at">from =</span> from_id, <span class="at">to =</span> to_id) <span class="sc">%&gt;%</span></span>
+<span id="cb58-23"><a href="#cb58-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">type =</span> <span class="st">"influence"</span>)</span>
+<span id="cb58-24"><a href="#cb58-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-25"><a href="#cb58-25" aria-hidden="true" tabindex="-1"></a>edges_song_to_person <span class="ot">&lt;-</span> final_result <span class="sc">%&gt;%</span></span>
+<span id="cb58-26"><a href="#cb58-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="at">from =</span> influenced_song, <span class="at">to =</span> collaborator_name) <span class="sc">%&gt;%</span></span>
+<span id="cb58-27"><a href="#cb58-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(label_to_id, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"from"</span> <span class="ot">=</span> <span class="st">"label"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb58-28"><a href="#cb58-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">from_id =</span> id) <span class="sc">%&gt;%</span></span>
+<span id="cb58-29"><a href="#cb58-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(label_to_id, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"to"</span> <span class="ot">=</span> <span class="st">"label"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb58-30"><a href="#cb58-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">to_id =</span> id) <span class="sc">%&gt;%</span></span>
+<span id="cb58-31"><a href="#cb58-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="at">from =</span> from_id, <span class="at">to =</span> to_id) <span class="sc">%&gt;%</span></span>
+<span id="cb58-32"><a href="#cb58-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">type =</span> <span class="st">"collaboration"</span>)</span>
+<span id="cb58-33"><a href="#cb58-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-34"><a href="#cb58-34" aria-hidden="true" tabindex="-1"></a><span class="co"># Add dist_from_sailor to influence edges</span></span>
+<span id="cb58-35"><a href="#cb58-35" aria-hidden="true" tabindex="-1"></a>edges_song_to_song <span class="ot">&lt;-</span> final_result <span class="sc">%&gt;%</span></span>
+<span id="cb58-36"><a href="#cb58-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="at">from =</span> sailor_song, <span class="at">to =</span> influenced_song, dist_from_sailor) <span class="sc">%&gt;%</span></span>
+<span id="cb58-37"><a href="#cb58-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(label_to_id, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"from"</span> <span class="ot">=</span> <span class="st">"label"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb58-38"><a href="#cb58-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">from_id =</span> id) <span class="sc">%&gt;%</span></span>
+<span id="cb58-39"><a href="#cb58-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(label_to_id, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"to"</span> <span class="ot">=</span> <span class="st">"label"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb58-40"><a href="#cb58-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">to_id =</span> id) <span class="sc">%&gt;%</span></span>
+<span id="cb58-41"><a href="#cb58-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="at">from =</span> from_id, <span class="at">to =</span> to_id, dist_from_sailor) <span class="sc">%&gt;%</span></span>
+<span id="cb58-42"><a href="#cb58-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">type =</span> <span class="st">"influence"</span>)</span>
+<span id="cb58-43"><a href="#cb58-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-44"><a href="#cb58-44" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine all edges</span></span>
+<span id="cb58-45"><a href="#cb58-45" aria-hidden="true" tabindex="-1"></a>edges_all <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(edges_song_to_song, edges_song_to_person)</span>
+<span id="cb58-46"><a href="#cb58-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-47"><a href="#cb58-47" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 4: Build graph</span></span>
+<span id="cb58-48"><a href="#cb58-48" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="fu">tbl_graph</span>(<span class="at">nodes =</span> node_table, <span class="at">edges =</span> edges_all, <span class="at">directed =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb58-49"><a href="#cb58-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-50"><a href="#cb58-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-51"><a href="#cb58-51" aria-hidden="true" tabindex="-1"></a>layout <span class="ot">&lt;-</span> <span class="fu">create_layout</span>(g, <span class="at">layout =</span> <span class="st">"fr"</span>)</span>
+<span id="cb58-52"><a href="#cb58-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-53"><a href="#cb58-53" aria-hidden="true" tabindex="-1"></a><span class="co"># Pull node positions by index</span></span>
+<span id="cb58-54"><a href="#cb58-54" aria-hidden="true" tabindex="-1"></a>nodes_pos <span class="ot">&lt;-</span> layout <span class="sc">%&gt;%</span></span>
+<span id="cb58-55"><a href="#cb58-55" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(.ggraph.index, x, y)</span>
+<span id="cb58-56"><a href="#cb58-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb58-57"><a href="#cb58-57" aria-hidden="true" tabindex="-1"></a><span class="co"># Join coordinates to edge table</span></span>
+<span id="cb58-58"><a href="#cb58-58" aria-hidden="true" tabindex="-1"></a>edges_label_data <span class="ot">&lt;-</span> edges_all <span class="sc">%&gt;%</span></span>
+<span id="cb58-59"><a href="#cb58-59" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(type <span class="sc">==</span> <span class="st">"influence"</span> <span class="sc">&amp;</span> <span class="sc">!</span><span class="fu">is.na</span>(dist_from_sailor)) <span class="sc">%&gt;%</span></span>
+<span id="cb58-60"><a href="#cb58-60" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(nodes_pos, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"from"</span> <span class="ot">=</span> <span class="st">".ggraph.index"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb58-61"><a href="#cb58-61" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">x_from =</span> x, <span class="at">y_from =</span> y) <span class="sc">%&gt;%</span></span>
+<span id="cb58-62"><a href="#cb58-62" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(nodes_pos, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"to"</span> <span class="ot">=</span> <span class="st">".ggraph.index"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb58-63"><a href="#cb58-63" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">x_to =</span> x, <span class="at">y_to =</span> y) <span class="sc">%&gt;%</span></span>
+<span id="cb58-64"><a href="#cb58-64" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb58-65"><a href="#cb58-65" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> (x_from <span class="sc">+</span> x_to) <span class="sc">/</span> <span class="dv">2</span>,</span>
+<span id="cb58-66"><a href="#cb58-66" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> (y_from <span class="sc">+</span> y_to) <span class="sc">/</span> <span class="dv">2</span>,</span>
+<span id="cb58-67"><a href="#cb58-67" aria-hidden="true" tabindex="-1"></a>    <span class="at">label =</span> <span class="fu">paste0</span>(dist_from_sailor, <span class="st">" hop"</span>, <span class="fu">ifelse</span>(dist_from_sailor <span class="sc">&gt;</span> <span class="dv">1</span>, <span class="st">"s"</span>, <span class="st">""</span>))</span>
+<span id="cb58-68"><a href="#cb58-68" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 </div>
 </section>
@@ -1385,35 +1606,35 @@ LyricalReferenceTo
 <div class="cell">
 <details class="code-fold">
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggraph</span>(layout) <span class="sc">+</span></span>
-<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_edge_link</span>(<span class="fu">aes</span>(<span class="at">color =</span> type),</span>
-<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>                 <span class="at">arrow =</span> <span class="fu">arrow</span>(<span class="at">length =</span> <span class="fu">unit</span>(<span class="dv">3</span>, <span class="st">"mm"</span>)),</span>
-<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>                 <span class="at">end_cap =</span> <span class="fu">circle</span>(<span class="dv">2</span>, <span class="st">'mm'</span>)) <span class="sc">+</span></span>
-<span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb56-6"><a href="#cb56-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="at">data =</span> edges_label_data,</span>
-<span id="cb56-7"><a href="#cb56-7" aria-hidden="true" tabindex="-1"></a>            <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> y, <span class="at">label =</span> label),</span>
-<span id="cb56-8"><a href="#cb56-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">size =</span> <span class="dv">3</span>, <span class="at">fontface =</span> <span class="st">"italic"</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
-<span id="cb56-9"><a href="#cb56-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb56-10"><a href="#cb56-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_node_point</span>(<span class="fu">aes</span>(<span class="at">color =</span> type), <span class="at">size =</span> <span class="dv">4</span>) <span class="sc">+</span></span>
-<span id="cb56-11"><a href="#cb56-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_node_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> label), <span class="at">repel =</span> <span class="cn">TRUE</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
-<span id="cb56-12"><a href="#cb56-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb56-13"><a href="#cb56-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_edge_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"influence"</span> <span class="ot">=</span> <span class="st">"blue"</span>, <span class="st">"collaboration"</span> <span class="ot">=</span> <span class="st">"darkgreen"</span>)) <span class="sc">+</span></span>
-<span id="cb56-14"><a href="#cb56-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(</span>
-<span id="cb56-15"><a href="#cb56-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">sailor_song =</span> <span class="st">"lightblue"</span>,</span>
-<span id="cb56-16"><a href="#cb56-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">influenced_song =</span> <span class="st">"gold"</span>,</span>
-<span id="cb56-17"><a href="#cb56-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">collaborator_name =</span> <span class="st">"lightgreen"</span></span>
-<span id="cb56-18"><a href="#cb56-18" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">+</span></span>
-<span id="cb56-19"><a href="#cb56-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb56-20"><a href="#cb56-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>() <span class="sc">+</span></span>
-<span id="cb56-21"><a href="#cb56-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb56-22"><a href="#cb56-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Sailor Shift's Influence on Oceanus Folk Collaborators"</span>,</span>
-<span id="cb56-23"><a href="#cb56-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Influence distances labeled along edges"</span></span>
-<span id="cb56-24"><a href="#cb56-24" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggraph</span>(layout) <span class="sc">+</span></span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_edge_link</span>(<span class="fu">aes</span>(<span class="at">color =</span> type),</span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>                 <span class="at">arrow =</span> <span class="fu">arrow</span>(<span class="at">length =</span> <span class="fu">unit</span>(<span class="dv">3</span>, <span class="st">"mm"</span>)),</span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a>                 <span class="at">end_cap =</span> <span class="fu">circle</span>(<span class="dv">2</span>, <span class="st">'mm'</span>)) <span class="sc">+</span></span>
+<span id="cb59-5"><a href="#cb59-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-6"><a href="#cb59-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="at">data =</span> edges_label_data,</span>
+<span id="cb59-7"><a href="#cb59-7" aria-hidden="true" tabindex="-1"></a>            <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> y, <span class="at">label =</span> label),</span>
+<span id="cb59-8"><a href="#cb59-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">size =</span> <span class="dv">3</span>, <span class="at">fontface =</span> <span class="st">"italic"</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb59-9"><a href="#cb59-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-10"><a href="#cb59-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_node_point</span>(<span class="fu">aes</span>(<span class="at">color =</span> type), <span class="at">size =</span> <span class="dv">4</span>) <span class="sc">+</span></span>
+<span id="cb59-11"><a href="#cb59-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_node_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> label), <span class="at">repel =</span> <span class="cn">TRUE</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb59-12"><a href="#cb59-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-13"><a href="#cb59-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_edge_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"influence"</span> <span class="ot">=</span> <span class="st">"blue"</span>, <span class="st">"collaboration"</span> <span class="ot">=</span> <span class="st">"darkgreen"</span>)) <span class="sc">+</span></span>
+<span id="cb59-14"><a href="#cb59-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(</span>
+<span id="cb59-15"><a href="#cb59-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">sailor_song =</span> <span class="st">"lightblue"</span>,</span>
+<span id="cb59-16"><a href="#cb59-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">influenced_song =</span> <span class="st">"gold"</span>,</span>
+<span id="cb59-17"><a href="#cb59-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">collaborator_name =</span> <span class="st">"lightgreen"</span></span>
+<span id="cb59-18"><a href="#cb59-18" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">+</span></span>
+<span id="cb59-19"><a href="#cb59-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb59-20"><a href="#cb59-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>() <span class="sc">+</span></span>
+<span id="cb59-21"><a href="#cb59-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb59-22"><a href="#cb59-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Sailor Shift's Influence on Oceanus Folk Collaborators"</span>,</span>
+<span id="cb59-23"><a href="#cb59-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Influence distances labeled along edges"</span></span>
+<span id="cb59-24"><a href="#cb59-24" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="Take-home_Ex02_files/figure-html/unnamed-chunk-40-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="Take-home_Ex02_files/figure-html/unnamed-chunk-41-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
