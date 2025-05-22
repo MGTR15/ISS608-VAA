@@ -637,7 +637,7 @@ g + theme_graph()
     -   The nodes list must include an “id” column, and the edge list must have “from” and “to” columns.
 
     -   The function also plots the labels for the nodes, using the names of the actors from the “label” column in the node list.
-    
+
 ## 27.8.1 Data preparation
 
 ```{r}
@@ -665,7 +665,6 @@ visNetwork(GAStech_nodes,
            GAStech_edges_aggregated) %>%
   visIgraphLayout(layout = "layout_with_fr") 
 ```
-
 
 ## 27.8.3 Working with layout
 
@@ -720,8 +719,7 @@ visNetwork(GAStech_nodes,
 
 In the code chunk below, visOptions() is used to incorporate interactivity features in the data visualisation.
 
-The argument highlightNearest highlights nearest when clicking a node.
-The argument nodesIdSelection adds an id node selection creating an HTML select element.
+The argument highlightNearest highlights nearest when clicking a node. The argument nodesIdSelection adds an id node selection creating an HTML select element.
 
 ```{r}
 #| code-fold: true
@@ -734,5 +732,3 @@ visNetwork(GAStech_nodes,
   visLegend() %>%
   visLayout(randomSeed = 123)
 ```
-
-
