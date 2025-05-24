@@ -2,7 +2,7 @@
 title: "Take-Home Exercise 2"
 author: "Marga Thura"
 date: "May 13 2025"
-date-modified: "May 17 2025"
+date-modified: "May 22 2025"
 editor: visual
 format: html
 execute:
@@ -157,6 +157,7 @@ ggraph(graph_memberof,
                  size = 2.5) +
   theme_void()
 ```
+
 
 # Part A: Who has Sailor Shift been most influenced by over time?
 
@@ -385,9 +386,12 @@ weighted_top_by_year_auto <- edges_tbl %>%
 print(weighted_top_by_year_auto)
 ```
 
+
+
 ## A6. Most Influential Performer by Sailor Shift Release Year
 
-The resulting chart below shows the top influencer by year, accounting for both the frequency and type of influence. Each bar represents a release year in Sailor’s career, annotated with the name of her top influencer *(person, group, or label)* and the cumulative influence score.
+
+The resulting chart below shows the top influencer by year, accounting for both the frequency and type of influence. Each bar represents a release year in Sailor’s career, annotated with the name of her top influencer (person, group, or label) and the cumulative influence score.
 
 This approach reveals both consistent sources of inspiration and shifts in influence throughout her discography, offering insight into how her sound may have been shaped by key collaborators or predecessors.
 
@@ -1110,3 +1114,5 @@ ggraph(layout) +
     subtitle = "Influence distances labeled along edges"
   )
 ```
+
+
