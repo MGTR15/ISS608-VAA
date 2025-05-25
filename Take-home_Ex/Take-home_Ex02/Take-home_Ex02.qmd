@@ -159,6 +159,7 @@ ggraph(graph_memberof,
 ```
 
 # Task 1
+
 # Part A: Who has Sailor Shift been most influenced by over time?
 
 To understand how Sailor Shift’s musical style has evolved, we examined the influence relationships affecting her songs over time. We defined influence using five edge types from the dataset: `InStyleOf`, `CoverOf`, `DirectlySamples`, `InterpolatesFrom`, and `LyricalReferenceTo`.
@@ -386,10 +387,7 @@ weighted_top_by_year_auto <- edges_tbl %>%
 print(weighted_top_by_year_auto)
 ```
 
-
-
 ## A6. Most Influential Performer by Sailor Shift Release Year
-
 
 The resulting chart below shows the top influencer by year, accounting for both the frequency and type of influence. Each bar represents a release year in Sailor’s career, annotated with the name of her top influencer (person, group, or label) and the cumulative influence score.
 
@@ -1117,18 +1115,21 @@ ggraph(layout) +
 
 # Task 3
 
-# Part A: Visualize the careers of three artists. Compare and contrast their rise in popularity and influence.
-Before comparing success between 2 singers and Sailor. We will be defining the remaining 2 singers by defining their popularity. Popularity will be defined by possible metrics:
+# Part A: Comparing the Rise in Popularity and Influence of Three Artists
 
-- Number of songs performed
+To profile what it means to be a rising star in the music industry, we compared Sailor Shift, Kimberly Snyder, and Ping Tian by analyzing their popularity and influence across time. We first identified and selected the top artists based on composite popularity metrics, then visualized their career trajectories using time-series and slope graphs.
 
-- Number of collaborations (songs with multiple artists)
+To rank artists and identify promising candidates to compare with Sailor Shift, we computed a composite popularity score using four key metrics:
 
-- Mentions in notable field (top charts, award  winning)
+-   Number of Songs Performed
 
-- Number of songs influenced by their songs
+-   Number of Collaborations (shared song credits)
 
-### Convert to character format to match 
+-   Notable Mentions (in top charts or award-winning songs/albums)
+
+-   Influence Spread (number of songs influenced by their music, directly or indirectly)
+
+## A1. Convert to character format to match
 
 ```{r}
 #| code-fold: true
@@ -1141,7 +1142,7 @@ nodes_tbl <- nodes_tbl %>%
   mutate(id = as.character(id))
 ```
 
-### Find out the most popular artists by giving them score and rank
+## A2. Find out the most popular artists by giving them score and rank
 
 ```{r}
 #| code-fold: true
@@ -1184,7 +1185,9 @@ influence_spread <- edges_tbl %>%
   count(artist_id, name = "influence_spread")
 ```
 
-### Log to to amplify small differences
+## A3. Log to amplify small differences
+
+Each metric was log-normalized to account for scale variation. The resulting scores were combined into a final composite index for ranking.
 
 ```{r}
 normalize_log <- function(x) {
@@ -1193,7 +1196,8 @@ normalize_log <- function(x) {
   
 ```
 
-### Result
+## A4. Result
+
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code"
@@ -1219,8 +1223,10 @@ artist_metrics_scaled %>%
   arrange(desc(final_score))
 ```
 
-### Plot top singers
-  
+## A5. Plot Top Artists
+
+The bar chart below highlights the artists with the highest overall scores. This ranking guided our selection of two comparison artists alongside Sailor Shift.
+
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code"
@@ -1247,14 +1253,19 @@ ggplot(top_artists_plot, aes(x = reorder(name, final_score), y = final_score)) +
 
 ```
 
+## A6. Career Comparison: Sailor Shift, Kimberly Snyder, and Ping Tian
 
-## Compare 3 singers careers: Sailor, Kimberly and Ping Timeline. 
+To examine their musical trajectories, we visualized how each artist evolved across three dimensions:
 
-## Popularity trends over time 
+-   Songs Performed Per Year
 
-For Sailor Shift, Kimberly Snyder, and Ping Tian using the metrics:
+-   Number of Collaborations Per Year
 
-### Songs performed per year
+-   Notable Mentions Per Year
+
+These are plotted in a multi-panel line graph, revealing when each artist was most active and how diversified their involvement was.
+
+### Songs Performed Per Year
 
 ```{r}
 #| code-fold: true
@@ -1272,7 +1283,8 @@ songs_performed_yearly <- edges_tbl %>%
 
 ```
 
-### Number of collaborations per year
+### Number of Collaborations Per Year
+
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code"
@@ -1299,7 +1311,8 @@ collaborations_yearly <- collab_counts %>%
   summarise(collabs = n(), .groups = "drop")
 ```
 
-### Notable Mentions (in songs or albums) Per Year
+### Notable Mentions Per Year
+
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code"
@@ -1315,7 +1328,6 @@ notables_yearly <- edges_tbl %>%
   group_by(artist, release_year) %>%
   summarise(notable_mentions = n(), .groups = "drop")
 ```
-
 
 ### Combining them together
 
@@ -1333,42 +1345,56 @@ popularity_df <- songs_performed_yearly %>%
   ))
 ```
 
-::: panel-tabset
+## A7. Plots
 
-### Influence Score (Line Graph)
+::: panel-tabset
+### Influence Over Time
+
 ```{r}
 #| echo: false
 #| fig-width: 12
 #| fig-height: 10
 
-
-# Helper function to get songs performed by an artist
-get_songs_by_artist <- function(artist_name) {
-  artist_id <- nodes_tbl %>% filter(name == artist_name) %>% pull(id)
-  
-  edges_tbl %>%
-    filter(`Edge Type` == "PerformerOf", source == artist_id) %>%
-    pull(target)
-}
-
 # Influence types
 influence_types <- c("InStyleOf", "CoverOf", "DirectlySamples", "InterpolatesFrom", "LyricalReferenceTo")
 
-# Function to compute influence count per year
+# Enhanced function to compute direct + indirect (2-hop) influence score per year
 get_influence_scores <- function(artist_name) {
-  song_ids <- get_songs_by_artist(artist_name)
+  artist_id <- nodes_tbl %>% filter(name == artist_name) %>% pull(id)
   
-  nodes_tbl %>%
-    filter(id %in% song_ids, !is.na(release_date)) %>%
+  # Songs performed by the artist
+  artist_songs <- edges_tbl %>%
+    filter(`Edge Type` == "PerformerOf", source == artist_id) %>%
+    pull(target)
+  
+  # 1-hop influence: songs influenced directly by artist_songs
+  influence_1hop <- edges_tbl %>%
+    filter(`Edge Type` %in% influence_types, source %in% artist_songs) %>%
+    pull(target)
+  
+  # 2-hop influence: songs influenced by the 1-hop songs
+  influence_2hop <- edges_tbl %>%
+    filter(`Edge Type` %in% influence_types, source %in% influence_1hop) %>%
+    pull(target)
+  
+  # All influenced songs: direct + indirect
+  all_influenced <- unique(c(influence_1hop, influence_2hop))
+  
+  # Join with release year of original artist songs
+  release_df <- nodes_tbl %>%
+    filter(id %in% artist_songs, !is.na(release_date)) %>%
     mutate(release_year = as.numeric(release_date)) %>%
-    inner_join(edges_tbl %>% 
-                 filter(`Edge Type` %in% influence_types, source %in% song_ids),
-               by = c("id" = "source")) %>%
+    select(id, release_year)
+  
+  # Count number of influenced songs per year of artist's releases
+  influence_df <- edges_tbl %>%
+    filter(`Edge Type` %in% influence_types, source %in% artist_songs, target %in% all_influenced) %>%
+    left_join(release_df, by = c("source" = "id")) %>%
     count(release_year, name = "influence_score") %>%
     mutate(artist = artist_name)
+  
+  return(influence_df)
 }
-
-
 
 # Get all three artists
 sailor_scores <- get_influence_scores("Sailor Shift")
@@ -1399,7 +1425,8 @@ ggplot(influence_trends, aes(x = release_year, y = influence_score, color = arti
 
 ```
 
-### Popularity Metrics (Line Graph)
+### Popularity Metrics Over Time
+
 ```{r}
 #| echo: false
 #| fig-width: 12
@@ -1435,7 +1462,7 @@ ggplot(popularity_long, aes(x = as.numeric(release_year), y = value, color = art
   )
 ```
 
-### Popularity Index (Slope Graph)
+### Popularity Index Change
 
 ```{r}
 #| echo: false
@@ -1482,14 +1509,14 @@ ggplot(slope_data, aes(x = year, y = popularity_index, group = artist, color = a
   )
 
 ```
-
-
-
 :::
 
+## A8. Summary of Insights
 
+-   Kimberly Snyder showed steady growth in both popularity and influence, supported by frequent collaborations and notable releases.
 
+-   Ping Tian had a brief peak with some influence but lacked lasting visibility.
 
+-   Sailor Shift, though less active, made a strong impact by subtly shaping musical trends.
 
-
-
+Overall, this suggests that being a rising star is not just about performing a lot as lasting success also comes from meaningful collaborations, recognition, and the ability to influence others.
