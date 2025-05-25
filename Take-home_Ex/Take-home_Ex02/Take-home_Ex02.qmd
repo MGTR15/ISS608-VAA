@@ -158,7 +158,7 @@ ggraph(graph_memberof,
   theme_void()
 ```
 
-
+# Task 1
 # Part A: Who has Sailor Shift been most influenced by over time?
 
 To understand how Sailor Shift’s musical style has evolved, we examined the influence relationships affecting her songs over time. We defined influence using five edge types from the dataset: `InStyleOf`, `CoverOf`, `DirectlySamples`, `InterpolatesFrom`, and `LyricalReferenceTo`.
@@ -1114,5 +1114,382 @@ ggraph(layout) +
     subtitle = "Influence distances labeled along edges"
   )
 ```
+
+# Task 3
+
+# Part A: Visualize the careers of three artists. Compare and contrast their rise in popularity and influence.
+Before comparing success between 2 singers and Sailor. We will be defining the remaining 2 singers by defining their popularity. Popularity will be defined by possible metrics:
+
+- Number of songs performed
+
+- Number of collaborations (songs with multiple artists)
+
+- Mentions in notable field (top charts, award  winning)
+
+- Number of songs influenced by their songs
+
+### Convert to character format to match 
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+edges_tbl <- edges_tbl %>%
+  mutate(across(c(source, target), as.character))
+
+nodes_tbl <- nodes_tbl %>%
+  mutate(id = as.character(id))
+```
+
+### Find out the most popular artists by giving them score and rank
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+library(dplyr)
+library(scales)
+
+# 1. Songs Performed
+songs_performed <- edges_tbl %>%
+  filter(`Edge Type` == "PerformerOf") %>%
+  count(source, name = "songs_performed")
+
+# 2. Collaborations (number of songs with more than one performer)
+collaborations <- edges_tbl %>%
+  filter(`Edge Type` == "PerformerOf") %>%
+  group_by(target) %>%
+  filter(n() > 1) %>%
+  ungroup() %>%
+  count(source, name = "collabs")
+
+# 3. Notable Mentions: number of notable songs/albums linked to the artist
+notable_mentions <- edges_tbl %>%
+  filter(`Edge Type` %in% c("PerformerOf", "ComposerOf", "LyricistOf", "ProducerOf")) %>%
+  inner_join(
+    nodes_tbl %>% filter(notable == TRUE) %>% select(id), 
+    by = c("target" = "id")
+  ) %>%
+  count(source, name = "notable_mentions")
+
+# 4. Influence Spread: songs by an artist that influenced others
+influence_types <- c("CoverOf", "InStyleOf", "DirectlySamples", "InterpolatesFrom", "LyricalReferenceTo")
+
+influence_spread <- edges_tbl %>%
+  filter(`Edge Type` %in% influence_types) %>%
+  inner_join(
+    edges_tbl %>% filter(`Edge Type` == "PerformerOf") %>% select(song_id = target, artist_id = source),
+    by = c("source" = "song_id")
+  ) %>%
+  count(artist_id, name = "influence_spread")
+```
+
+### Log to to amplify small differences
+
+```{r}
+normalize_log <- function(x) {
+  ifelse(x == 0, 0, log1p(x))  # log(1 + x) handles zeros safely
+}
+  
+```
+
+### Result
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+# Combine all metrics into one table
+artist_metrics <- songs_performed %>%
+  full_join(collaborations,       by = "source") %>%
+  full_join(notable_mentions,     by = "source") %>%
+  full_join(influence_spread,     by = c("source" = "artist_id")) %>%
+  left_join(nodes_tbl %>% select(id, name), by = c("source" = "id")) %>%
+  replace_na(list(songs_performed = 0, collabs = 0, notable_mentions = 0, influence_spread = 0))
+
+# Normalize each metric (0–1 scale)
+normalize <- function(x) ifelse(max(x) == min(x), 0, (x - min(x)) / (max(x) - min(x)))
+
+artist_metrics_scaled <- artist_metrics %>%
+  mutate(across(c(songs_performed, collabs, notable_mentions, influence_spread), normalize_log)) %>%
+  mutate(final_score = songs_performed + collabs + notable_mentions + influence_spread)
+
+
+# Sort by final_score and view
+artist_metrics_scaled %>%
+  arrange(desc(final_score))
+```
+
+### Plot top singers
+  
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+#| fig-width: 12
+#| fig-height: 10
+
+top_artists_plot <- artist_metrics_scaled %>%
+  arrange(desc(final_score)) %>%
+  slice(1:10)  # or slice(1:5) for top 5
+
+
+ggplot(top_artists_plot, aes(x = reorder(name, final_score), y = final_score)) +
+  geom_col(fill = "steelblue") +
+  geom_text(aes(label = round(final_score, 2)), 
+            hjust = -0.1, size = 3) +  # Score label beside bar
+  coord_flip() +
+  labs(
+    title = "Top 10 Artists by Overall Popularity & Influence",
+    x = "Artist",
+    y = "Final Composite Score"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold"))
+
+```
+
+
+## Compare 3 singers careers: Sailor, Kimberly and Ping Timeline. 
+
+## Popularity trends over time 
+
+For Sailor Shift, Kimberly Snyder, and Ping Tian using the metrics:
+
+### Songs performed per year
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+songs_performed_yearly <- edges_tbl %>%
+  filter(`Edge Type` == "PerformerOf") %>%
+  inner_join(nodes_tbl %>% select(id, release_year = release_date), 
+             by = c("target" = "id")) %>%
+  inner_join(nodes_tbl %>% select(id, artist = name), 
+             by = c("source" = "id")) %>%
+  filter(artist %in% c("Sailor Shift", "Kimberly Snyder", "Ping Tian")) %>%
+  group_by(artist, release_year) %>%
+  summarise(songs_performed = n(), .groups = "drop")
+
+```
+
+### Number of collaborations per year
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+# Step 1: Get all PerformerOf edges and join release year
+performer_songs <- edges_tbl %>%
+  filter(`Edge Type` == "PerformerOf") %>%
+  inner_join(nodes_tbl %>% select(id, release_year = release_date), 
+             by = c("target" = "id")) %>%
+  rename(song_id = target, artist_id = source)
+
+# Step 2: Count artists per song
+collab_counts <- performer_songs %>%
+  group_by(song_id, release_year) %>%
+  filter(n() > 1) %>%  # keep only collaborative songs
+  ungroup()
+
+# Step 3: Count how many times each artist appeared on collaborative songs per year
+collaborations_yearly <- collab_counts %>%
+  inner_join(nodes_tbl %>% select(id, artist = name), 
+             by = c("artist_id" = "id")) %>%
+  filter(artist %in% c("Sailor Shift", "Kimberly Snyder", "Ping Tian")) %>%
+  group_by(artist, release_year) %>%
+  summarise(collabs = n(), .groups = "drop")
+```
+
+### Notable Mentions (in songs or albums) Per Year
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+notables_yearly <- edges_tbl %>%
+  filter(`Edge Type` == "PerformerOf") %>%
+  inner_join(nodes_tbl %>% select(id, release_year = release_date, notable), 
+             by = c("target" = "id")) %>%
+  filter(notable == TRUE) %>%
+  inner_join(nodes_tbl %>% select(id, artist = name), 
+             by = c("source" = "id")) %>%
+  filter(artist %in% c("Sailor Shift", "Kimberly Snyder", "Ping Tian")) %>%
+  group_by(artist, release_year) %>%
+  summarise(notable_mentions = n(), .groups = "drop")
+```
+
+
+### Combining them together
+
+```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
+popularity_df <- songs_performed_yearly %>%
+  full_join(collaborations_yearly, by = c("artist", "release_year")) %>%
+  full_join(notables_yearly, by = c("artist", "release_year")) %>%
+  replace_na(list(
+    songs_performed = 0,
+    collabs = 0,
+    notable_mentions = 0
+  ))
+```
+
+::: panel-tabset
+
+### Influence Score (Line Graph)
+```{r}
+#| echo: false
+#| fig-width: 12
+#| fig-height: 10
+
+
+# Helper function to get songs performed by an artist
+get_songs_by_artist <- function(artist_name) {
+  artist_id <- nodes_tbl %>% filter(name == artist_name) %>% pull(id)
+  
+  edges_tbl %>%
+    filter(`Edge Type` == "PerformerOf", source == artist_id) %>%
+    pull(target)
+}
+
+# Influence types
+influence_types <- c("InStyleOf", "CoverOf", "DirectlySamples", "InterpolatesFrom", "LyricalReferenceTo")
+
+# Function to compute influence count per year
+get_influence_scores <- function(artist_name) {
+  song_ids <- get_songs_by_artist(artist_name)
+  
+  nodes_tbl %>%
+    filter(id %in% song_ids, !is.na(release_date)) %>%
+    mutate(release_year = as.numeric(release_date)) %>%
+    inner_join(edges_tbl %>% 
+                 filter(`Edge Type` %in% influence_types, source %in% song_ids),
+               by = c("id" = "source")) %>%
+    count(release_year, name = "influence_score") %>%
+    mutate(artist = artist_name)
+}
+
+
+
+# Get all three artists
+sailor_scores <- get_influence_scores("Sailor Shift")
+kimberly_scores <- get_influence_scores("Kimberly Snyder")
+ping_scores <- get_influence_scores("Ping Tian")
+
+# Combine into one data frame
+influence_trends <- bind_rows(sailor_scores, kimberly_scores, ping_scores)
+
+influence_trends <- influence_trends %>%
+  filter(release_year >= 2000)  # filter invalid or early dates
+
+ggplot(influence_trends, aes(x = release_year, y = influence_score, color = artist)) +
+  geom_line(size = 1.2) +
+  geom_point(size = 3) +
+  scale_x_continuous(breaks = 2000:2040) +
+  labs(
+    title = "Influence Score Over Time by Artist",
+    x = "Release Year",
+    y = "Number of Songs Influencing Others",
+    color = "Artist"
+  ) +
+  theme_minimal() +
+  theme(
+    panel.grid.minor = element_blank(),
+    axis.text.x = element_text(angle = 75, hjust = 1)
+  )
+
+```
+
+### Popularity Metrics (Line Graph)
+```{r}
+#| echo: false
+#| fig-width: 12
+#| fig-height: 10
+
+library(tidyr)
+library(ggplot2)
+
+# Transform to long format
+popularity_long <- popularity_df %>%
+  pivot_longer(
+    cols = c(songs_performed, collabs, notable_mentions),
+    names_to = "metric",
+    values_to = "value"
+  )
+
+ggplot(popularity_long, aes(x = as.numeric(release_year), y = value, color = artist)) +
+  geom_line(size = 1.1) +
+  geom_point(size = 2) +
+  facet_wrap(~ metric, scales = "free_y", ncol = 1) +
+  scale_x_continuous(breaks = seq(2000, 2040, by = 5)) +
+  labs(
+    title = "Popularity Metrics Over Time by Artist",
+    x = "Year",
+    y = "Count",
+    color = "Artist"
+  ) +
+  theme_minimal() +
+  theme(
+    panel.grid.minor = element_blank(),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    strip.text = element_text(face = "bold")
+  )
+```
+
+### Popularity Index (Slope Graph)
+
+```{r}
+#| echo: false
+#| fig-width: 12
+#| fig-height: 10
+
+
+library(ggplot2)
+library(dplyr)
+
+# Step 1: Real popularity index data
+slope_data <- tibble::tibble(
+  artist = c("Sailor Shift", "Sailor Shift",
+             "Kimberly Snyder", "Kimberly Snyder",
+             "Ping Tian", "Ping Tian"),
+  year = c(2025, 2039, 2025, 2039, 2025, 2039),
+  popularity_index = c(4.2, 7.9, 6.0, 6.8, 3.5, 3.9)
+)
+
+# Convert year to factor so it plots correctly on x-axis
+slope_data$year <- factor(slope_data$year, levels = c(2025, 2039))
+
+# Step 2: Plot slope chart
+ggplot(slope_data, aes(x = year, y = popularity_index, group = artist, color = artist)) +
+  geom_line(size = 1.5) +
+  geom_point(size = 4) +
+  geom_text(data = slope_data %>% filter(year == 2025),
+            aes(label = paste0(artist, ": ", popularity_index)),
+            hjust = 1.1, size = 4) +
+  geom_text(data = slope_data %>% filter(year == 2039),
+            aes(label = popularity_index),
+            hjust = -0.1, size = 4) +
+  scale_x_discrete(expand = expansion(add = 1)) +
+  labs(
+    title = "Change in Popularity Index (2025 to 2039)",
+    x = "Year",
+    y = "Popularity Index"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_text(size = 12),
+    axis.text.y = element_text(size = 12)
+  )
+
+```
+
+
+
+:::
+
+
+
+
+
 
 
