@@ -1564,6 +1564,9 @@ top_predictions
 ```
 
 ```{r}
+#| code-fold: true
+#| code-summary: "Show the code"
+
 library(packcircles)
 library(ggplot2)
 library(dplyr)
