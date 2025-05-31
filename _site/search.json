@@ -1111,5 +1111,12 @@
     "title": "Take-Home Exercise 2",
     "section": "A8. Summary of Insights",
     "text": "A8. Summary of Insights\n\nKimberly Snyder showed steady growth in both popularity and influence, supported by frequent collaborations and notable releases.\nPing Tian had a brief peak with some influence but lacked lasting visibility.\nSailor Shift, though less active, made a strong impact by subtly shaping musical trends.\n\nOverall, this suggests that being a rising star is not just about performing a lot as lasting success also comes from meaningful collaborations, recognition, and the ability to influence others."
+  },
+  {
+    "objectID": "Take-home_Ex/Take-home_Ex02/Take-home_Ex02.html#plot",
+    "href": "Take-home_Ex/Take-home_Ex02/Take-home_Ex02.html#plot",
+    "title": "Take-Home Exercise 2",
+    "section": "Plot",
+    "text": "Plot\n\n\nShow the code\nlibrary(packcircles)\nlibrary(ggplot2)\nlibrary(dplyr)\nlibrary(viridis)\n\n# Step 1: Prepare data (sorted ascending so largest appears last/top)\ncircle_data &lt;- artist_metrics_scaled %&gt;%\n  filter(name %in% oceanus_collaborators$name, name != \"Sailor Shift\") %&gt;%\n  distinct(name, .keep_all = TRUE) %&gt;%\n  arrange(final_score) %&gt;%\n  slice_tail(n = 20) %&gt;%\n  rename(artist = name)\n\n# Step 2: Generate circle layout\npacking &lt;- circleProgressiveLayout(circle_data$final_score, sizetype = 'area')\ncircle_data &lt;- bind_cols(circle_data, packing)\n\n# Step 3: Build polygons\ncircle_polygons &lt;- circleLayoutVertices(packing, npoints = 50) %&gt;%\n  mutate(artist = rep(circle_data$artist, each = 51),\n         final_score = rep(circle_data$final_score, each = 51))\n\n# Step 4: Plot with legend\nggplot() +\n  geom_polygon(\n    data = circle_polygons,\n    aes(x = x, y = y, group = id, fill = final_score),\n    color = \"gray\", alpha = 0.8\n  ) +\n  \n  geom_text(\n    data = circle_data,\n    aes(x, y, label = artist),\n    color = \"black\", size = 2.5\n  ) +\n  scale_fill_viridis_c(option = \"C\", name = \"Final Score\") +\n  coord_equal() +\n  theme_void() +\n  theme(\n    legend.position = \"right\",\n    plot.title = element_text(face = \"bold\", size = 14)\n  ) +\n  labs(\n    title = \"Top Oceanus Folk Collaborators (Circle-Packed by Final Score)\"\n  )"
   }
 ]

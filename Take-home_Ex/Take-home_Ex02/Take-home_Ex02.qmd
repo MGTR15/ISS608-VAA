@@ -2,7 +2,7 @@
 title: "Take-Home Exercise 2"
 author: "Marga Thura"
 date: "May 13 2025"
-date-modified: "May 22 2025"
+date-modified: "May 31 2025"
 editor: visual
 format: html
 execute:
@@ -1563,6 +1563,8 @@ top_predictions
 
 ```
 
+## Plot
+
 ```{r}
 #| code-fold: true
 #| code-summary: "Show the code"
@@ -1615,7 +1617,3 @@ ggplot() +
 
 
 ```
-
-
-
-
