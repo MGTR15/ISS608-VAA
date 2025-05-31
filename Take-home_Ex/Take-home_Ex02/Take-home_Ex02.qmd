@@ -4,7 +4,8 @@ author: "Marga Thura"
 date: "May 13 2025"
 date-modified: "May 31 2025"
 editor: visual
-format: html
+prefer-html: true
+format: docx
 execute:
   eval: true
   echo: true
@@ -1617,3 +1618,19 @@ ggplot() +
 
 
 ```
+
+# References
+
+https://cran.r-project.org/web/packages/circlize/index.html
+
+https://clauswilke.com/dataviz/ 
+
+https://ggplot2.tidyverse.org//index.html
+
+https://wiki.smu.edu.sg/1617t3isss608g1/ISSS608_2016-17_T3_Assign_GUAN_YIFEI
+
+https://par.nsf.gov/servlets/purl/10394301
+
+https://isss608-ay2024-25apr.netlify.app/th_ex/mc1-kickstarter
+
+https://vast-challenge.github.io/2025/MC1.html
