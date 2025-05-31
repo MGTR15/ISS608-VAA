@@ -1352,8 +1352,8 @@ popularity_df <- songs_performed_yearly %>%
 
 ```{r}
 #| echo: false
-#| fig-width: 12
-#| fig-height: 10
+#| fig-width: 10
+#| fig-height: 8
 
 # Influence types
 influence_types <- c("InStyleOf", "CoverOf", "DirectlySamples", "InterpolatesFrom", "LyricalReferenceTo")
@@ -1520,3 +1520,99 @@ ggplot(slope_data, aes(x = year, y = popularity_index, group = artist, color = a
 -   Sailor Shift, though less active, made a strong impact by subtly shaping musical trends.
 
 Overall, this suggests that being a rising star is not just about performing a lot as lasting success also comes from meaningful collaborations, recognition, and the ability to influence others.
+
+# PART B: Three predictions of who the next Oceanus Folk stars with be over the next five years.
+
+Earlier in Part 2C, we identified a broad group of Oceanus Folk collaborators: artists, bands, and labels who had directly co-created music with the Oceanus Folk community. These collaborators were derived by:
+
+-   Selecting contributors to songs tagged with the genre "Oceanus Folk" across roles like `PerformerOf`, `ComposerOf`, `LyricistOf`, and `ProducerOf`
+
+-   Expanding this group to include artists who shared songs with Oceanus Folk contributors
+
+This gave us a refined list of artists who have strong connections to the Oceanus Folk scene.
+
+In Part 3a, we created a composite popularity and influence score *(final_score)* for all artists in the dataset. This score was calculated using four normalized metrics:
+
+-   Number of songs performed
+
+-   Number of collaborations (shared credits)
+
+-   Number of notable mentions (awards or top charts)
+
+-   Influence spread (how many songs their music influenced)
+
+-   All values were log-normalized and summed to produce a balanced final score.
+
+To predict future stars:
+
+We filtered the *artist_metrics_scaled* table to retain only those artists who are in the *oceanus_collaborators* list and excluded Sailor Shift (since she is already an established star).
+
+We sorted the artists by their composite *final_score* in descending order.
+
+We selected the top 3 artists as the most promising future Oceanus Folk stars.
+
+```{r}
+# Step 1: Filter Oceanus collaborators from artist metrics
+top_predictions <- artist_metrics_scaled %>%
+  filter(name %in% oceanus_collaborators$name, name != "Sailor Shift") %>%
+  arrange(desc(final_score)) %>%
+  slice_max(final_score, n = 3) %>%
+  rename(artist = name)
+
+top_predictions
+
+```
+
+```{r}
+library(packcircles)
+library(ggplot2)
+library(dplyr)
+library(viridis)
+
+# Step 1: Prepare data (sorted ascending so largest appears last/top)
+circle_data <- artist_metrics_scaled %>%
+  filter(name %in% oceanus_collaborators$name, name != "Sailor Shift") %>%
+  distinct(name, .keep_all = TRUE) %>%
+  arrange(final_score) %>%
+  slice_tail(n = 20) %>%
+  rename(artist = name)
+
+# Step 2: Generate circle layout
+packing <- circleProgressiveLayout(circle_data$final_score, sizetype = 'area')
+circle_data <- bind_cols(circle_data, packing)
+
+# Step 3: Build polygons
+circle_polygons <- circleLayoutVertices(packing, npoints = 50) %>%
+  mutate(artist = rep(circle_data$artist, each = 51),
+         final_score = rep(circle_data$final_score, each = 51))
+
+# Step 4: Plot with legend
+ggplot() +
+  geom_polygon(
+    data = circle_polygons,
+    aes(x = x, y = y, group = id, fill = final_score),
+    color = "gray", alpha = 0.8
+  ) +
+  
+  geom_text(
+    data = circle_data,
+    aes(x, y, label = artist),
+    color = "black", size = 2.5
+  ) +
+  scale_fill_viridis_c(option = "C", name = "Final Score") +
+  coord_equal() +
+  theme_void() +
+  theme(
+    legend.position = "right",
+    plot.title = element_text(face = "bold", size = 14)
+  ) +
+  labs(
+    title = "Top Oceanus Folk Collaborators (Circle-Packed by Final Score)"
+  )
+
+
+```
+
+
+
+

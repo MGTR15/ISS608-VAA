@@ -286,6 +286,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#a7.-plots" id="toc-a7.-plots" class="nav-link" data-scroll-target="#a7.-plots">A7. Plots</a></li>
   <li><a href="#a8.-summary-of-insights" id="toc-a8.-summary-of-insights" class="nav-link" data-scroll-target="#a8.-summary-of-insights">A8. Summary of Insights</a></li>
   </ul></li>
+  <li><a href="#part-b-three-predictions-of-who-the-next-oceanus-folk-stars-with-be-over-the-next-five-years." id="toc-part-b-three-predictions-of-who-the-next-oceanus-folk-stars-with-be-over-the-next-five-years." class="nav-link" data-scroll-target="#part-b-three-predictions-of-who-the-next-oceanus-folk-stars-with-be-over-the-next-five-years.">PART B: Three predictions of who the next Oceanus Folk stars with be over the next five years.</a></li>
   </ul>
 </nav>
     </div>
@@ -1922,7 +1923,7 @@ LyricalReferenceTo
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="Take-home_Ex02_files/figure-html/unnamed-chunk-51-1.png" class="img-fluid figure-img" width="1152"></p>
+<p><img src="Take-home_Ex02_files/figure-html/unnamed-chunk-51-1.png" class="img-fluid figure-img" width="960"></p>
 </figure>
 </div>
 </div>
@@ -1961,9 +1962,103 @@ LyricalReferenceTo
 <li><p>Sailor Shift, though less active, made a strong impact by subtly shaping musical trends.</p></li>
 </ul>
 <p>Overall, this suggests that being a rising star is not just about performing a lot as lasting success also comes from meaningful collaborations, recognition, and the ability to influence others.</p>
-
-
 </section>
+</section>
+<section id="part-b-three-predictions-of-who-the-next-oceanus-folk-stars-with-be-over-the-next-five-years." class="level1">
+<h1>PART B: Three predictions of who the next Oceanus Folk stars with be over the next five years.</h1>
+<p>Earlier in Part 2C, we identified a broad group of Oceanus Folk collaborators: artists, bands, and labels who had directly co-created music with the Oceanus Folk community. These collaborators were derived by:</p>
+<ul>
+<li><p>Selecting contributors to songs tagged with the genre “Oceanus Folk” across roles like <code>PerformerOf</code>, <code>ComposerOf</code>, <code>LyricistOf</code>, and <code>ProducerOf</code></p></li>
+<li><p>Expanding this group to include artists who shared songs with Oceanus Folk contributors</p></li>
+</ul>
+<p>This gave us a refined list of artists who have strong connections to the Oceanus Folk scene.</p>
+<p>In Part 3a, we created a composite popularity and influence score <em>(final_score)</em> for all artists in the dataset. This score was calculated using four normalized metrics:</p>
+<ul>
+<li><p>Number of songs performed</p></li>
+<li><p>Number of collaborations (shared credits)</p></li>
+<li><p>Number of notable mentions (awards or top charts)</p></li>
+<li><p>Influence spread (how many songs their music influenced)</p></li>
+<li><p>All values were log-normalized and summed to produce a balanced final score.</p></li>
+</ul>
+<p>To predict future stars:</p>
+<p>We filtered the <em>artist_metrics_scaled</em> table to retain only those artists who are in the <em>oceanus_collaborators</em> list and excluded Sailor Shift (since she is already an established star).</p>
+<p>We sorted the artists by their composite <em>final_score</em> in descending order.</p>
+<p>We selected the top 3 artists as the most promising future Oceanus Folk stars.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb70"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 1: Filter Oceanus collaborators from artist metrics</span></span>
+<span id="cb70-2"><a href="#cb70-2" aria-hidden="true" tabindex="-1"></a>top_predictions <span class="ot">&lt;-</span> artist_metrics_scaled <span class="sc">%&gt;%</span></span>
+<span id="cb70-3"><a href="#cb70-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(name <span class="sc">%in%</span> oceanus_collaborators<span class="sc">$</span>name, name <span class="sc">!=</span> <span class="st">"Sailor Shift"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb70-4"><a href="#cb70-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(final_score)) <span class="sc">%&gt;%</span></span>
+<span id="cb70-5"><a href="#cb70-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_max</span>(final_score, <span class="at">n =</span> <span class="dv">3</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb70-6"><a href="#cb70-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">artist =</span> name)</span>
+<span id="cb70-7"><a href="#cb70-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-8"><a href="#cb70-8" aria-hidden="true" tabindex="-1"></a>top_predictions</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3 × 7
+  source songs_performed collabs notable_mentions influence_spread artist      
+  &lt;chr&gt;            &lt;dbl&gt;   &lt;dbl&gt;            &lt;dbl&gt;            &lt;dbl&gt; &lt;chr&gt;       
+1 1098              2.71    1.95             3.37             4.50 Guiying Bai 
+2 2023              2.83    2.77             3.22             3.26 Qiang Tang  
+3 163               2.48    2.48             2.94             3.22 Regina Hesse
+# ℹ 1 more variable: final_score &lt;dbl&gt;</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb72"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(packcircles)</span>
+<span id="cb72-2"><a href="#cb72-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb72-3"><a href="#cb72-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb72-4"><a href="#cb72-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(viridis)</span>
+<span id="cb72-5"><a href="#cb72-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb72-6"><a href="#cb72-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 1: Prepare data (sorted ascending so largest appears last/top)</span></span>
+<span id="cb72-7"><a href="#cb72-7" aria-hidden="true" tabindex="-1"></a>circle_data <span class="ot">&lt;-</span> artist_metrics_scaled <span class="sc">%&gt;%</span></span>
+<span id="cb72-8"><a href="#cb72-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(name <span class="sc">%in%</span> oceanus_collaborators<span class="sc">$</span>name, name <span class="sc">!=</span> <span class="st">"Sailor Shift"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb72-9"><a href="#cb72-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(name, <span class="at">.keep_all =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb72-10"><a href="#cb72-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(final_score) <span class="sc">%&gt;%</span></span>
+<span id="cb72-11"><a href="#cb72-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_tail</span>(<span class="at">n =</span> <span class="dv">20</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb72-12"><a href="#cb72-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">artist =</span> name)</span>
+<span id="cb72-13"><a href="#cb72-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb72-14"><a href="#cb72-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 2: Generate circle layout</span></span>
+<span id="cb72-15"><a href="#cb72-15" aria-hidden="true" tabindex="-1"></a>packing <span class="ot">&lt;-</span> <span class="fu">circleProgressiveLayout</span>(circle_data<span class="sc">$</span>final_score, <span class="at">sizetype =</span> <span class="st">'area'</span>)</span>
+<span id="cb72-16"><a href="#cb72-16" aria-hidden="true" tabindex="-1"></a>circle_data <span class="ot">&lt;-</span> <span class="fu">bind_cols</span>(circle_data, packing)</span>
+<span id="cb72-17"><a href="#cb72-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb72-18"><a href="#cb72-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 3: Build polygons</span></span>
+<span id="cb72-19"><a href="#cb72-19" aria-hidden="true" tabindex="-1"></a>circle_polygons <span class="ot">&lt;-</span> <span class="fu">circleLayoutVertices</span>(packing, <span class="at">npoints =</span> <span class="dv">50</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb72-20"><a href="#cb72-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">artist =</span> <span class="fu">rep</span>(circle_data<span class="sc">$</span>artist, <span class="at">each =</span> <span class="dv">51</span>),</span>
+<span id="cb72-21"><a href="#cb72-21" aria-hidden="true" tabindex="-1"></a>         <span class="at">final_score =</span> <span class="fu">rep</span>(circle_data<span class="sc">$</span>final_score, <span class="at">each =</span> <span class="dv">51</span>))</span>
+<span id="cb72-22"><a href="#cb72-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb72-23"><a href="#cb72-23" aria-hidden="true" tabindex="-1"></a><span class="co"># Step 4: Plot with legend</span></span>
+<span id="cb72-24"><a href="#cb72-24" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb72-25"><a href="#cb72-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_polygon</span>(</span>
+<span id="cb72-26"><a href="#cb72-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> circle_polygons,</span>
+<span id="cb72-27"><a href="#cb72-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">x =</span> x, <span class="at">y =</span> y, <span class="at">group =</span> id, <span class="at">fill =</span> final_score),</span>
+<span id="cb72-28"><a href="#cb72-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"gray"</span>, <span class="at">alpha =</span> <span class="fl">0.8</span></span>
+<span id="cb72-29"><a href="#cb72-29" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb72-30"><a href="#cb72-30" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb72-31"><a href="#cb72-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(</span>
+<span id="cb72-32"><a href="#cb72-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> circle_data,</span>
+<span id="cb72-33"><a href="#cb72-33" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(x, y, <span class="at">label =</span> artist),</span>
+<span id="cb72-34"><a href="#cb72-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">size =</span> <span class="fl">2.5</span></span>
+<span id="cb72-35"><a href="#cb72-35" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb72-36"><a href="#cb72-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_viridis_c</span>(<span class="at">option =</span> <span class="st">"C"</span>, <span class="at">name =</span> <span class="st">"Final Score"</span>) <span class="sc">+</span></span>
+<span id="cb72-37"><a href="#cb72-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_equal</span>() <span class="sc">+</span></span>
+<span id="cb72-38"><a href="#cb72-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>() <span class="sc">+</span></span>
+<span id="cb72-39"><a href="#cb72-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb72-40"><a href="#cb72-40" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"right"</span>,</span>
+<span id="cb72-41"><a href="#cb72-41" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="dv">14</span>)</span>
+<span id="cb72-42"><a href="#cb72-42" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb72-43"><a href="#cb72-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb72-44"><a href="#cb72-44" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Top Oceanus Folk Collaborators (Circle-Packed by Final Score)"</span></span>
+<span id="cb72-45"><a href="#cb72-45" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Take-home_Ex02_files/figure-html/unnamed-chunk-55-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+
+
 </section>
 
 </main> <!-- /main -->
