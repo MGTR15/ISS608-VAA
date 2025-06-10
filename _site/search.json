@@ -1433,5 +1433,54 @@
     "title": "Take-Home Exercise 2",
     "section": "Plot",
     "text": "Plot\n\n\nShow the code\nlibrary(packcircles)\nlibrary(ggplot2)\nlibrary(dplyr)\nlibrary(viridis)\n\n# Step 1: Prepare data (sorted ascending so largest appears last/top)\ncircle_data &lt;- artist_metrics_scaled %&gt;%\n  filter(name %in% oceanus_collaborators$name, name != \"Sailor Shift\") %&gt;%\n  distinct(name, .keep_all = TRUE) %&gt;%\n  arrange(final_score) %&gt;%\n  slice_tail(n = 20) %&gt;%\n  rename(artist = name)\n\n# Step 2: Generate circle layout\npacking &lt;- circleProgressiveLayout(circle_data$final_score, sizetype = 'area')\ncircle_data &lt;- bind_cols(circle_data, packing)\n\n# Step 3: Build polygons\ncircle_polygons &lt;- circleLayoutVertices(packing, npoints = 50) %&gt;%\n  mutate(artist = rep(circle_data$artist, each = 51),\n         final_score = rep(circle_data$final_score, each = 51))\n\n# Step 4: Plot with legend\nggplot() +\n  geom_polygon(\n    data = circle_polygons,\n    aes(x = x, y = y, group = id, fill = final_score),\n    color = \"gray\", alpha = 0.8\n  ) +\n  \n  geom_text(\n    data = circle_data,\n    aes(x, y, label = artist),\n    color = \"black\", size = 2.5\n  ) +\n  scale_fill_viridis_c(option = \"C\", name = \"Final Score\") +\n  coord_equal() +\n  theme_void() +\n  theme(\n    legend.position = \"right\",\n    plot.title = element_text(face = \"bold\", size = 14)\n  ) +\n  labs(\n    title = \"Top Oceanus Folk Collaborators (Circle-Packed by Final Score)\"\n  )"
+  },
+  {
+    "objectID": "Take-home_Ex/Take-Home_Ex03/Take-Home_Ex03.html#performer-influence-type-breakdown",
+    "href": "Take-home_Ex/Take-Home_Ex03/Take-Home_Ex03.html#performer-influence-type-breakdown",
+    "title": "Take-home Exercise 3",
+    "section": "Performer Influence Type Breakdown",
+    "text": "Performer Influence Type Breakdown\nThis tab introduces users to the different influence types that shaped Sailor Shift’s musical career over time.\n\nThe “Choose Performer” dropdown at the top of the sidebar allows users to select any artist in the dataset, not just Sailor Shift.\nOnce a performer is selected, all relevant visualizations and data tables across the dashboard update accordingly.\nThis includes:\n\nThe Influence Type Breakdown, which adjusts to show how the selected artist was influenced across five musical influence types.\nThe Yearly Top Influencer chart, which recalculates weighted influence scores specific to the chosen artist’s discography and timeline.\n\nIn other tabs, such as Collaborations and Influence Graph, the system traces collaborations and downstream influence for the selected performer, dynamically adapting the content of tables and networks.\nThis flexible feature ensures that the dashboard functions as a general-purpose career and influence analysis tool for any artist within the Oceanus Folk dataset, making it scalable, exploratory, and comparative.\nInteractive Features:\n\nA horizontal bar chart shows counts of influence types such as InStyleOf, CoverOf, DirectlySamples, etc.\nUsers can toggle Weighted Influence Scoring to factor in the rarity of each influence type.\nDropdown filter allows users to limit the chart to a specific influence type."
+  },
+  {
+    "objectID": "Take-home_Ex/Take-Home_Ex03/Take-Home_Ex03.html#most-influential-performer-by-release-year",
+    "href": "Take-home_Ex/Take-Home_Ex03/Take-Home_Ex03.html#most-influential-performer-by-release-year",
+    "title": "Take-home Exercise 3",
+    "section": "Most Influential Performer by Release Year",
+    "text": "Most Influential Performer by Release Year\nThis component summarizes which performer had the greatest weighted influence on Sailor Shift for each release year.\nFeatures:\n\nA vertical bar chart ranks top influencers across time.\nLabels within each bar display both the influencer’s name and their node type (e.g., person, group).\nYear Range slider (left sidebar) lets users restrict the visualization to specific time periods."
+  },
+  {
+    "objectID": "Take-home_Ex/Take-Home_Ex03/Take-Home_Ex03.html#collaborations-data-table",
+    "href": "Take-home_Ex/Take-Home_Ex03/Take-Home_Ex03.html#collaborations-data-table",
+    "title": "Take-home Exercise 3",
+    "section": "Collaborations Data Table",
+    "text": "Collaborations Data Table\nThis tab shows artists who collaborated with Sailor Shift by co-performing songs.\n\nFeatures:\n\nAn interactive data table displays: collaborator name, number of songs shared, first collaboration year, and song IDs.\nAllows searching, sorting, and pagination.\nDirect or Indirect Influence Table This component reveals which of those collaborators were also influenced by Sailor’s work.\n\nFunctionality:\n\nTable includes: collaborator name, node type, type of influence (Direct), and associated song ID.\nLeft sidebar includes Filter by Influence Type, allowing users to isolate Direct vs Indirect influences."
+  },
+  {
+    "objectID": "Take-home_Ex/Take-Home_Ex03/Take-Home_Ex03.html#influenced-collaborators-network-graph",
+    "href": "Take-home_Ex/Take-Home_Ex03/Take-Home_Ex03.html#influenced-collaborators-network-graph",
+    "title": "Take-home Exercise 3",
+    "section": "Influenced Collaborators’ Network Graph",
+    "text": "Influenced Collaborators’ Network Graph\nThis tab visualizes how Sailor Shift’s songs have influenced Oceanus Folk collaborators across multiple steps of influence.\n\nNetwork graph with three node types:\n\nSailor Shift’s songs (blue)\nInfluenced songs (yellow)\nCollaborator names (green)\n\nEdge styles:\n\nBlue arrows represent musical influence\nGreen arrows represent song collaboration\n\nEdge labels indicate the number of hops from Sailor’s song to the influenced collaborator.\n\nInfluence Path Filter\nA dropdown below the graph allows users to adjust the depth of influence shown:\n\n\n\nOption\nDescription\n\n\n\n\nDirect Only\nShow only 1-hop direct influences\n\n\n2 Hops\nInclude 1 level of indirect influence\n\n\n3+ Hops\nFull multi-hop influence tracing"
+  },
+  {
+    "objectID": "Take-home_Ex/Take-Home_Ex03/Take-Home_Ex03.html#overview-tab",
+    "href": "Take-home_Ex/Take-Home_Ex03/Take-Home_Ex03.html#overview-tab",
+    "title": "Take-home Exercise 3",
+    "section": "Overview Tab",
+    "text": "Overview Tab\nThe Overview tab provides a high-level summary of influence impact, helping users quickly identify which collaborators were musically shaped by Sailor Shift’s work.\nThis section includes:\nA summary table displaying:\n\nCollaborator name\nThe song of theirs that was influenced\nThe original Sailor Shift song\nThe number of hops (influence distance)\n\nThis overview supports exploratory understanding and highlights key influencers and intermediaries in Sailor’s artistic legacy."
+  },
+  {
+    "objectID": "Take-home_Ex/Take-Home_Ex03/Take-Home_Ex03.html#oceanus-folk-community-tab",
+    "href": "Take-home_Ex/Take-Home_Ex03/Take-Home_Ex03.html#oceanus-folk-community-tab",
+    "title": "Take-home Exercise 3",
+    "section": "Oceanus Folk Community Tab",
+    "text": "Oceanus Folk Community Tab\nThis tab provides a structured data table of all recognized members of the Oceanus Folk community, defined by:\nTheir creative contributions (performance, composition, lyric, or production) to songs tagged as Oceanus Folk\nManual inclusion of key Ivy Echoes members (e.g., Maya Jensen, Lila Hartman, Jade Thompson, Sophie Ramirez)\nUsers can:\n\nView artist name and node type\nSearch or filter the community list\nExplore downstream connections in the other tabs"
+  },
+  {
+    "objectID": "Take-home_Ex/Take-Home_Ex03/Take-Home_Ex03.html#collaborators-heatmap-tab",
+    "href": "Take-home_Ex/Take-Home_Ex03/Take-Home_Ex03.html#collaborators-heatmap-tab",
+    "title": "Take-home Exercise 3",
+    "section": "Collaborators Heatmap Tab",
+    "text": "Collaborators Heatmap Tab\nThis tab displays a heatmap matrix that quantifies collaboration intensity between:\n\nTop Oceanus Folk members (Y-axis)\nTop Collaborators (X-axis)\nColor intensity indicates the number of shared songs, making it easy to:\nDetect tightly coupled artist pairs\nIdentify key collaborators across the community\nCompare overlap patterns across roles and genres\n\nUsers can adjust:\n\nNumber of top artists shown (Top 10, Top 20)\nFilters by role (Performer, Composer, etc.)"
   }
 ]
