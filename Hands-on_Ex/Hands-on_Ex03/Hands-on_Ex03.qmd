@@ -832,7 +832,7 @@ p + transition_reveal(Year)
 ```
 :::
 
-## 4.4.2  Data Transition Plot
+## 4.4.2 Data Transition Plot
 
 ```{r}
 library(dplyr)
@@ -886,10 +886,12 @@ p +
 
 ```
 :::
+
 # 4.4.3 Simple box plot
 
 ::: panel-tabset
 ## Plot
+
 ```{r}
 #| echo: false
 ggplot(globalPop, aes(x = Continent, y = Young)) + 
@@ -906,7 +908,9 @@ ggplot(globalPop, aes(x = Continent, y = Young)) +
   exit_shrink() +
   ease_aes('sine-in-out') 
 ```
+
 ## The code
+
 ```{r}
 #| eval: false
 ggplot(globalPop, aes(x = Continent, y = Young)) + 
