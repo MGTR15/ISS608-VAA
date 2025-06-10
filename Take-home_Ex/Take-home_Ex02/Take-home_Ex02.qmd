@@ -4,8 +4,6 @@ author: "Marga Thura"
 date: "May 13 2025"
 date-modified: "May 31 2025"
 editor: visual
-prefer-html: true
-format: docx
 execute:
   eval: true
   echo: true
