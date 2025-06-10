@@ -138,6 +138,10 @@ ul.task-list li input[type="checkbox"] {
     <a class="dropdown-item" href="../../Take-home_Ex/Take-home_Ex02/Take-home_Ex02.html">
  <span class="dropdown-text">Take-home Exercise 2</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../../Take-home_Ex/Take-Home_Ex03/Take-Home_Ex03.html">
+ <span class="dropdown-text">Take-home Exercise 3</span></a>
+  </li>  
     </ul>
   </li>
 </ul>
@@ -186,6 +190,12 @@ ul.task-list li input[type="checkbox"] {
   <li><a href="#overview-tab" id="toc-overview-tab" class="nav-link" data-scroll-target="#overview-tab">Overview Tab</a></li>
   <li><a href="#oceanus-folk-community-tab" id="toc-oceanus-folk-community-tab" class="nav-link" data-scroll-target="#oceanus-folk-community-tab">Oceanus Folk Community Tab</a></li>
   <li><a href="#collaborators-heatmap-tab" id="toc-collaborators-heatmap-tab" class="nav-link" data-scroll-target="#collaborators-heatmap-tab">Collaborators Heatmap Tab</a></li>
+  </ul></li>
+  <li><a href="#section-4-popularity-and-rising-stars-analysis" id="toc-section-4-popularity-and-rising-stars-analysis" class="nav-link" data-scroll-target="#section-4-popularity-and-rising-stars-analysis">Section 4 – Popularity and Rising Stars Analysis</a>
+  <ul class="collapse">
+  <li><a href="#tab-1-top-artist-rankings" id="toc-tab-1-top-artist-rankings" class="nav-link" data-scroll-target="#tab-1-top-artist-rankings">Tab 1: Top Artist Rankings</a></li>
+  <li><a href="#tab-2-career-comparison" id="toc-tab-2-career-comparison" class="nav-link" data-scroll-target="#tab-2-career-comparison">Tab 2: Career Comparison</a></li>
+  <li><a href="#tab-3-predicted-future-stars" id="toc-tab-3-predicted-future-stars" class="nav-link" data-scroll-target="#tab-3-predicted-future-stars">Tab 3: Predicted Future Stars</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -393,6 +403,55 @@ ul.task-list li input[type="checkbox"] {
 <li><p>Number of top artists shown (Top 10, Top 20)</p></li>
 <li><p>Filters by role (Performer, Composer, etc.)</p></li>
 </ul>
+</section>
+</section>
+<section id="section-4-popularity-and-rising-stars-analysis" class="level1">
+<h1>Section 4 – Popularity and Rising Stars Analysis</h1>
+<p>This section of the dashboard focuses on exploring the careers, comparative influence, and future potential of musical artists within the Oceanus Folk dataset. It is designed to help users identify what defines a “rising star” based on composite popularity metrics and influence trends.</p>
+<section id="tab-1-top-artist-rankings" class="level2">
+<h2 class="anchored" data-anchor-id="tab-1-top-artist-rankings">Tab 1: Top Artist Rankings</h2>
+<p><img src="images/clipboard-2327493396.png" class="img-fluid"></p>
+<p>This tab presents an interactive bar chart that ranks artists by their overall composite score, a combined metric based on:</p>
+<ul>
+<li><p>Number of songs performed</p></li>
+<li><p>Number of collaborations</p></li>
+<li><p>Notable mentions (charts or awards)</p></li>
+<li><p>Influence spread (songs influenced by their work)</p></li>
+</ul>
+<p>UI Components:</p>
+<ul>
+<li><p>Horizontal bar chart displays the top 10 artists with their final scores.</p></li>
+<li><p>Users can adjust the Year Range slider (bottom right) to filter rankings by active career period.</p></li>
+<li><p>A Choose Performer dropdown (bottom left) allows users to select an artist and drill down further in the subsequent tabs.</p></li>
+</ul>
+</section>
+<section id="tab-2-career-comparison" class="level2">
+<h2 class="anchored" data-anchor-id="tab-2-career-comparison">Tab 2: Career Comparison</h2>
+<p><img src="images/clipboard-1606134263.png" class="img-fluid"></p>
+<p>This tab uses time-series visualizations to compare how Sailor Shift, Kimberly Snyder, and Ping Tian evolved over time.</p>
+<p>Sub-components:</p>
+<p>Three faceted line charts display trends by year:</p>
+<ul>
+<li><p>Songs Performed</p></li>
+<li><p>Collaborations</p></li>
+<li><p>Notable Mentions</p></li>
+<li><p>A line graph shows influence score over time, capturing both direct and indirect musical influence (multi-hop paths).</p></li>
+<li><p>A dynamic Year Range slider allows users to focus on specific time periods.</p></li>
+<li><p>Choose Performer enables selection of another artist, enabling broader comparisons beyond the default three.</p></li>
+</ul>
+<p>A Chart Interpretation Box is also built to help users understand the key takeaway from the visualization and provide guidance on how to interpret the chart elements.</p>
+</section>
+<section id="tab-3-predicted-future-stars" class="level2">
+<h2 class="anchored" data-anchor-id="tab-3-predicted-future-stars">Tab 3: Predicted Future Stars</h2>
+<p><img src="images/clipboard-2635905523.png" class="img-fluid"></p>
+<p>This final tab highlights artists predicted to become influential within the Oceanus Folk scene, based on their current trajectory and composite score.</p>
+<p>UI Features:</p>
+<ul>
+<li><p>A ranked table shows the top predicted artist, sorted by final_score.</p></li>
+<li><p>Columns: ID, Artist Name, Final Score</p></li>
+<li><p>A Select Year dropdown enables users to simulate predictions by future periods or filter emerging talent pools dynamically.</p></li>
+</ul>
+<p>A Chart Interpretation Box is also built to help users understand the key takeaway from the visualization and bridge the gap between raw data and analytical insight.</p>
 
 
 </section>

@@ -195,3 +195,69 @@ Users can adjust:
 -   Number of top artists shown (Top 10, Top 20)
 
 -   Filters by role (Performer, Composer, etc.)
+
+# Section 4 – Popularity and Rising Stars Analysis
+
+This section of the dashboard focuses on exploring the careers, comparative influence, and future potential of musical artists within the Oceanus Folk dataset. It is designed to help users identify what defines a “rising star” based on composite popularity metrics and influence trends.
+
+## Tab 1: Top Artist Rankings
+
+![](images/clipboard-2327493396.png)
+
+This tab presents an interactive bar chart that ranks artists by their overall composite score, a combined metric based on:
+
+-   Number of songs performed
+
+-   Number of collaborations
+
+-   Notable mentions (charts or awards)
+
+-   Influence spread (songs influenced by their work)
+
+UI Components:
+
+-   Horizontal bar chart displays the top 10 artists with their final scores.
+
+-   Users can adjust the Year Range slider (bottom right) to filter rankings by active career period.
+
+-   A Choose Performer dropdown (bottom left) allows users to select an artist and drill down further in the subsequent tabs.
+
+## Tab 2: Career Comparison
+
+![](images/clipboard-1606134263.png)
+
+This tab uses time-series visualizations to compare how Sailor Shift, Kimberly Snyder, and Ping Tian evolved over time.
+
+Sub-components:
+
+Three faceted line charts display trends by year:
+
+-   Songs Performed
+
+-   Collaborations
+
+-   Notable Mentions
+
+-   A line graph shows influence score over time, capturing both direct and indirect musical influence (multi-hop paths).
+
+-   A dynamic Year Range slider allows users to focus on specific time periods.
+
+-   Choose Performer enables selection of another artist, enabling broader comparisons beyond the default three.
+
+A Chart Interpretation Box is also built to help users understand the key takeaway from the visualization and provide guidance on how to interpret the chart elements.
+
+## Tab 3: Predicted Future Stars
+
+![](images/clipboard-2635905523.png)
+
+This final tab highlights artists predicted to become influential within the Oceanus Folk scene, based on their current trajectory and composite score.
+
+UI Features:
+
+-   A ranked table shows the top predicted artist, sorted by final_score.
+
+-   Columns: ID, Artist Name, Final Score
+
+-   A Select Year dropdown enables users to simulate predictions by future periods or filter emerging talent pools dynamically.
+
+A Chart Interpretation Box is also built to help users understand the key takeaway from the visualization and bridge the gap between raw data and analytical insight.
