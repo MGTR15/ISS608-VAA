@@ -552,6 +552,7 @@ sailor_influence_tbl
 #| code-fold: true
 #| code-summary: "Show the code"
 
+
 library(dplyr)
 library(igraph)
 library(visNetwork)
