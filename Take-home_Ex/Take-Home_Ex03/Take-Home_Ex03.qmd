@@ -2,7 +2,7 @@
 title: "Take-home Exercise 3"
 author: "Marga Thura"
 date: "June 10 2025"
-date-modified: "June 10 2025"
+date-modified: "June 13 2025"
 editor: visual
 execute:
   eval: true
