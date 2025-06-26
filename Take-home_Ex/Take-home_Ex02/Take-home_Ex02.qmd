@@ -641,6 +641,12 @@ visNetwork(nodes_vis, edges_vis, width = "100%", height = "600px") %>%
   visLayout(randomSeed = 42)
 ```
 
+```{r}
+songs_tbl <- sailor_songs_tbl
+
+
+```
+
 ### Result
 
 Finally, we compared the two sets:
@@ -1556,7 +1562,7 @@ We selected the top 3 artists as the most promising future Oceanus Folk stars.
 top_predictions <- artist_metrics_scaled %>%
   filter(name %in% oceanus_collaborators$name, name != "Sailor Shift") %>%
   arrange(desc(final_score)) %>%
-  slice_max(final_score, n = 3) %>%
+  slice_max(final_score, n = 10) %>%
   rename(artist = name)
 
 top_predictions
@@ -1622,7 +1628,7 @@ ggplot() +
 
 https://cran.r-project.org/web/packages/circlize/index.html
 
-https://clauswilke.com/dataviz/ 
+https://clauswilke.com/dataviz/
 
 https://ggplot2.tidyverse.org//index.html
 
