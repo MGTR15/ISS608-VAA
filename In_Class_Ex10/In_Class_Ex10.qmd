@@ -656,6 +656,9 @@ list(color = "primary",
      value = daily_summary$high
 )
 ```
+
+## Row
+
 ```{r}
 df <- daily_prices %>%
   filter(Name == "CapitaLand Mall Trust")
